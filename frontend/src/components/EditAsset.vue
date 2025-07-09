@@ -4,21 +4,19 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAssetsStore } from '@/stores/assets'
 import { useAuthStore } from '@/stores/auth'
+import { toJalali } from '@/utils/jalali'
 
 const router = useRouter()
 const route = useRoute()
 const assetsStore = useAssetsStore()
 const authStore = useAuthStore()
 
-// Check if we're in edit mode based on the route
-const isEditMode = computed(() => route.path.includes('/edit'))
-
 const asset = ref(null)
 const form = ref({
   name: '',
   description: '',
   category: '',
-  current_department: '', // Only this should be editable
+  current_department: '',
   status: 'active',
   purchase_date: '',
   purchase_price: '',
@@ -32,14 +30,17 @@ const loading = ref(false)
 const saving = ref(false)
 const departments = computed(() => assetsStore.departments)
 const categories = computed(() => assetsStore.categories)
+const isEditMode = computed(() => route.path.includes('/edit'))
+
+const jalaliPurchaseDate = computed(() => toJalali(form.value.purchase_date))
+const jalaliCreatedAt = computed(() => toJalali(asset.value?.created_at))
 
 const loadAsset = async () => {
   loading.value = true
   try {
     const id = route.params.id
     asset.value = await assetsStore.getAsset(id)
-    
-    // Fill form with asset data
+
     form.value = {
       name: asset.value.name || '',
       description: asset.value.description || '',
@@ -63,21 +64,16 @@ const loadAsset = async () => {
 
 const submitAsset = async () => {
   if (!isEditMode.value) return
-  
+
   saving.value = true
   try {
     const payload = {}
     for (const [k, v] of Object.entries(form.value)) {
-      if (v !== '') payload[k] = v
+      if (v !== '' && k !== 'purchase_date') payload[k] = v
     }
 
-    // Convert number fields from string to float
-    if (payload.purchase_price) {
-      payload.purchase_price = parseFloat(payload.purchase_price)
-    }
-    if (payload.current_value) {
-      payload.current_value = parseFloat(payload.current_value)
-    }
+    if (payload.purchase_price) payload.purchase_price = parseFloat(payload.purchase_price)
+    if (payload.current_value) payload.current_value = parseFloat(payload.current_value)
 
     await assetsStore.updateAsset(route.params.id, payload)
     alert('Asset updated successfully!')
@@ -90,15 +86,10 @@ const submitAsset = async () => {
   }
 }
 
-const cancelEdit = () => {
-  router.push('/assets')
-}
+const cancelEdit = () => router.push('/assets')
 
 const deleteAsset = async () => {
-  if (!confirm('Are you sure you want to delete this asset? This action cannot be undone.')) {
-    return
-  }
-  
+  if (!confirm('Are you sure you want to delete this asset?')) return
   try {
     await assetsStore.deleteAsset(route.params.id)
     alert('Asset deleted successfully!')
@@ -124,8 +115,8 @@ onMounted(async () => {
       <h1>{{ isEditMode ? 'Edit Asset' : 'Asset Details' }}</h1>
       <div class="header-actions">
         <router-link to="/assets" class="back-btn">← Back to Assets</router-link>
-        <button 
-          v-if="!isEditMode" 
+        <button
+          v-if="!isEditMode"
           @click="router.push(`/assets/${route.params.id}/edit`)"
           class="btn btn-primary"
         >
@@ -137,89 +128,57 @@ onMounted(async () => {
     <div v-if="loading" class="loading">Loading asset details...</div>
 
     <form v-else-if="asset" @submit.prevent="isEditMode ? submitAsset() : null" class="asset-form">
-      <!-- Asset Code (Always Read-only) -->
       <div class="form-group">
         <label for="code">Asset Code</label>
-        <input 
-          id="code" 
-          :value="asset.code"
-          type="text" 
-          disabled 
-          class="readonly-field"
-        />
+        <input id="code" :value="asset.code" type="text" disabled class="readonly-field" />
       </div>
 
-      <!-- Name -->
       <div class="form-group">
         <label for="name">Asset Name *</label>
-        <input 
-          id="name" 
-          v-model="form.name" 
-          type="text" 
-          :disabled="!isEditMode"
-          required 
-        />
+        <input id="name" v-model="form.name" type="text" :disabled="!isEditMode" required />
       </div>
 
-      <!-- Description -->
       <div class="form-group">
         <label for="description">Description</label>
-        <textarea 
-          id="description" 
-          v-model="form.description" 
-          rows="3" 
-          :disabled="!isEditMode"
-        />
+        <textarea id="description" v-model="form.description" rows="3" :disabled="!isEditMode" />
       </div>
 
-      <!-- Category & Original Department -->
       <div class="form-row">
         <div class="form-group">
           <label for="category">Category *</label>
-          <select 
-            id="category" 
-            v-model="form.category" 
-            :disabled="!isEditMode"
-            required
-          >
+          <select id="category" v-model="form.category" :disabled="!isEditMode" required>
             <option value="">Select Category</option>
             <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
         </div>
         <div class="form-group">
           <label for="department">Original Department *</label>
-          <input 
-            id="department" 
+          <input
+            id="department"
             :value="asset.department_name"
-            type="text" 
-            disabled 
+            type="text"
+            disabled
             class="readonly-field"
-            title="Original department cannot be changed"
           />
           <small class="field-help">This is the department that originally owned this asset</small>
         </div>
       </div>
 
-      <!-- Current Department & Status -->
       <div class="form-row">
         <div class="form-group">
           <label for="current_department">Current Department *</label>
-          <input 
-  id="current_department"
-  :value="asset.current_department_name || 'N/A'"
-  type="text"
-  disabled
-  class="readonly-field"
-/>
+          <input
+            id="current_department"
+            :value="asset.current_department_name || 'N/A'"
+            type="text"
+            disabled
+            class="readonly-field"
+          />
           <small class="field-help">This is where the asset is currently located</small>
         </div>
         <div class="form-group">
           <label for="status">Status</label>
-          <select 
-            id="status" 
-            v-model="form.status"
-            :disabled="!isEditMode"
-          >
+          <select id="status" v-model="form.status" :disabled="!isEditMode">
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
             <option value="under_maintenance">Under Maintenance</option>
@@ -228,102 +187,73 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Purchase Date & Price -->
+      <!-- Purchase Date (Jalali Only Display) -->
       <div class="form-row">
         <div class="form-group">
-          <label for="purchase_date">Purchase Date *</label>
-          <input 
-            id="purchase_date" 
-            v-model="form.purchase_date" 
-            type="date" 
-            :disabled="!isEditMode"
-            required 
+          <label for="purchase_date">Purchase Date (Persian)</label>
+          <input
+            id="purchase_date"
+            :value="jalaliPurchaseDate"
+            type="text"
+            disabled
+            class="readonly-field"
           />
         </div>
         <div class="form-group">
           <label for="purchase_price">Purchase Price *</label>
-          <input 
-            id="purchase_price" 
-            v-model="form.purchase_price" 
-            type="number" 
-            step="0.01" 
+          <input
+            id="purchase_price"
+            v-model="form.purchase_price"
+            type="number"
+            step="0.01"
             :disabled="!isEditMode"
-            required 
+            required
           />
         </div>
       </div>
 
-      <!-- Current Value -->
       <div class="form-group">
         <label for="current_value">Current Value</label>
-        <input 
-          id="current_value" 
-          v-model="form.current_value" 
-          type="number" 
-          step="0.01" 
+        <input
+          id="current_value"
+          v-model="form.current_value"
+          type="number"
+          step="0.01"
           :disabled="!isEditMode"
         />
       </div>
 
-      <!-- Serial, Brand, Model -->
       <div class="form-row">
         <div class="form-group">
           <label for="serial_number">Serial Number</label>
-          <input 
-            id="serial_number" 
-            v-model="form.serial_number" 
-            type="text" 
-            :disabled="!isEditMode"
-          />
+          <input id="serial_number" v-model="form.serial_number" type="text" :disabled="!isEditMode" />
         </div>
         <div class="form-group">
           <label for="brand">Brand</label>
-          <input 
-            id="brand" 
-            v-model="form.brand" 
-            type="text" 
-            :disabled="!isEditMode"
-          />
+          <input id="brand" v-model="form.brand" type="text" :disabled="!isEditMode" />
         </div>
       </div>
 
       <div class="form-group">
         <label for="model">Model</label>
-        <input 
-          id="model" 
-          v-model="form.model" 
-          type="text" 
-          :disabled="!isEditMode"
-        />
+        <input id="model" v-model="form.model" type="text" :disabled="!isEditMode" />
       </div>
 
-      <!-- Created By & Dates (Always Read-only) -->
       <div class="form-row readonly-info">
         <div class="form-group">
           <label>Created By</label>
-          <input 
-            :value="asset.created_by_name"
-            type="text" 
-            disabled 
-            class="readonly-field"
-          />
+          <input :value="asset.created_by_name" type="text" disabled class="readonly-field" />
         </div>
         <div class="form-group">
-          <label>Created At</label>
-          <input 
-            :value="new Date(asset.created_at).toLocaleDateString()"
-            type="text" 
-            disabled 
-            class="readonly-field"
-          />
+          <label>Created At (Persian)</label>
+          <input :value="jalaliCreatedAt" type="text" disabled class="readonly-field" />
         </div>
       </div>
 
-      <!-- Form Actions (Only in Edit Mode) -->
       <div v-if="isEditMode" class="form-actions">
         <button type="button" @click="cancelEdit" class="cancel-btn">Cancel</button>
-        <button 
-          type="button" 
+        <button
+          type="button"
           @click="deleteAsset"
           class="delete-btn"
           v-if="authStore.user?.role === 'admin'"
@@ -337,6 +267,7 @@ onMounted(async () => {
     </form>
   </div>
 </template>
+
 
 <style scoped>
 .edit-asset {

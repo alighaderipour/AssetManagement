@@ -3,6 +3,14 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAssetsStore } from '@/stores/assets'
+import DatePicker from 'vue3-persian-datetime-picker'
+import jalaali from 'jalaali-js'
+
+function jalaliToGregorian(jalaliDateStr) {
+  const [jy, jm, jd] = jalaliDateStr.split('/').map(Number)
+  const g = jalaali.toGregorian(jy, jm, jd)
+  return `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}`
+}
 
 const router = useRouter()
 const assetsStore = useAssetsStore()
@@ -17,7 +25,7 @@ const form = ref({
   purchase_price: '',
   current_value: '',
   serial_number: '',
-  asset_code :'',
+  asset_code: '',
   brand: '',
   model: ''
 })
@@ -32,6 +40,11 @@ const submitAsset = async () => {
     const payload = {}
     for (const [k, v] of Object.entries(form.value)) {
       if (v !== '') payload[k] = v
+    }
+
+    // ✅ Convert Jalali to Gregorian before sending to backend
+    if (payload.purchase_date) {
+      payload.purchase_date = jalaliToGregorian(payload.purchase_date)
     }
 
     // Convert number fields from string to float
@@ -59,7 +72,6 @@ onMounted(async () => {
 })
 </script>
 
-<!-- ✅ Make sure you have ONLY ONE template block -->
 <template>
   <div class="add-asset">
     <div class="form-header">
@@ -110,7 +122,13 @@ onMounted(async () => {
         </div>
         <div class="form-group">
           <label for="purchase_date">Purchase Date *</label>
-          <input id="purchase_date" v-model="form.purchase_date" type="date" required />
+          <DatePicker
+            v-model="form.purchase_date"
+            format="YYYY/MM/DD"
+            display-format="jYYYY/jMM/jDD"
+            auto-submit
+            required
+          />
         </div>
       </div>
 
@@ -129,26 +147,13 @@ onMounted(async () => {
       <!-- Serial, Brand, Model -->
       <div class="form-row">
         <div class="form-group">
-    <label for="serial_number">Serial Number</label>
-    <input
-      id="serial_number"
-      v-model="form.serial_number"
-      type="text"
-      autocomplete="off"
-      maxlength="100"
-    />
-  </div>
+          <label for="serial_number">Serial Number</label>
+          <input id="serial_number" v-model="form.serial_number" type="text" autocomplete="off" maxlength="100" />
+        </div>
         <div class="form-group">
-    <label for="asset_code">Asset Code *</label>
-    <input
-      id="asset_code"
-      v-model="form.asset_code"
-      type="text"
-      required
-      autocomplete="off"
-      maxlength="100"
-    />
-  </div>
+          <label for="asset_code">Asset Code *</label>
+          <input id="asset_code" v-model="form.asset_code" type="text" required autocomplete="off" maxlength="100" />
+        </div>
         <div class="form-group">
           <label for="brand">Brand</label>
           <input id="brand" v-model="form.brand" type="text" />
@@ -170,6 +175,7 @@ onMounted(async () => {
     </form>
   </div>
 </template>
+
 
 <style scoped>
 .add-asset {

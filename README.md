@@ -22,4 +22,6 @@ name project frontend
 cd .\frontend\
 npm install
 npm install vue-router@4
+npm install moment-jalaali
+npm install vue3-persian-datetime-picker
 npm run dev

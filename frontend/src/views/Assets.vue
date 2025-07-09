@@ -195,6 +195,7 @@ const changePage = (newPage) => {
 // Card action handlers (no change)
 const viewAsset = (id) => {
   router.push(`/assets/${id}/edit`)
+
 }
 const transferAsset = (asset) => {
   selectedAsset.value = asset

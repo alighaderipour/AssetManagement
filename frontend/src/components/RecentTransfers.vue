@@ -72,7 +72,17 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import jalaali from 'jalaali-js'
+// ✅ Add this function to convert Gregorian to Jalali
+function toJalali(dateString) {
+  if (!dateString) return 'تاریخ نامعتبر'
 
+  const date = new Date(dateString)
+  const j = jalaali.toJalaali(date)
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${j.jy}/${j.jm.toString().padStart(2, '0')}/${j.jd.toString().padStart(2, '0')} ${hours}:${minutes}`
+}
 // Props
 const props = defineProps({
   maxItems: {
@@ -128,16 +138,9 @@ const fetchTransfers = async () => {
 
 const formatDate = (dateString) => {
   if (!dateString) return 'Unknown date'
-  
+
   try {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    return toJalali(dateString) // ✅ Use the new function
   } catch (error) {
     return 'Invalid date'
   }
