@@ -7,7 +7,6 @@ const route = useRoute()
 const authStore = useAuthStore()
 const hideNavOnRoutes = ['/login', '/register']
 
-// Show nav for authenticated users and not login/register page
 const shouldShowNav = computed(() => {
   return authStore.isAuthenticated && !hideNavOnRoutes.includes(route.path)
 })
@@ -15,9 +14,9 @@ const shouldShowNav = computed(() => {
 
 <template>
   <header v-if="shouldShowNav">
-    <nav class="fancy-navbar" >
-      <!-- Logo -->
-      <RouterLink to="/" class="logo-link" aria-label="Home">
+    <nav class="fancy-navbar">
+      <!-- لوگو سمت راست -->
+      <RouterLink to="/" class="logo-link" aria-label="صفحه اصلی">
         <img
           alt="Logo"
           class="logo-img"
@@ -26,13 +25,14 @@ const shouldShowNav = computed(() => {
           height="48"
         />
       </RouterLink>
+      <!-- منو -->
+      <ul class="nav-links">
 
-      <ul class="nav-links"  >
-        <li><RouterLink to="/" exact-active-class="active">Home</RouterLink></li>
-        <li><RouterLink to="/about" exact-active-class="active">About</RouterLink></li>
-        <li><RouterLink to="/assets" exact-active-class="active">Assets</RouterLink></li>
-        <li><RouterLink to="/categories" exact-active-class="active">Categories</RouterLink></li>
-        <li><RouterLink to="/departments" exact-active-class="active">Departments</RouterLink></li>
+        <li><RouterLink to="/" exact-active-class="active">صفحه اصلی</RouterLink></li>
+        <li><RouterLink to="/assets" exact-active-class="active">کالاها</RouterLink></li>
+        <li><RouterLink to="/categories" exact-active-class="active">دسته بندی</RouterLink></li>
+        <li><RouterLink to="/departments" exact-active-class="active">بخش ها</RouterLink></li>
+        <li><RouterLink to="/about" exact-active-class="active">درباره</RouterLink></li>
       </ul>
     </nav>
   </header>
@@ -43,8 +43,10 @@ const shouldShowNav = computed(() => {
 <style scoped>
 .fancy-navbar {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  direction: rtl; /* راست‌چین شدن همه عناصر */
   background: #ffffff;
   padding: 1rem 2rem;
   border-radius: 16px;
@@ -54,12 +56,14 @@ const shouldShowNav = computed(() => {
   border: 1px solid #e2e8f0;
   position: relative;
   z-index: 10;
+  gap: 1.5rem;
 }
 
 .logo-link {
   text-decoration: none;
   display: flex;
   align-items: center;
+  margin-left: 2rem; /* فاصله لوگو از منو */
 }
 
 .logo-img {
@@ -78,14 +82,18 @@ const shouldShowNav = computed(() => {
 
 .nav-links {
   display: flex;
+  flex-direction: row;
   align-items: center;
   list-style: none;
   margin: 0;
   padding: 0;
   gap: 0.5rem;
+  direction: rtl; /* منو راست‌چین بماند */
 }
 
 .nav-links li {
+  display: flex;
+  align-items: center;
   margin: 0 0.4rem;
 }
 
@@ -98,6 +106,7 @@ const shouldShowNav = computed(() => {
   text-decoration: none;
   font-size: 1rem;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .nav-links a:hover {
@@ -108,7 +117,6 @@ const shouldShowNav = computed(() => {
 .nav-links a.active {
   color: #1e40af;
   font-weight: 600;
-  position: relative;
 }
 
 .nav-links a.active::after {
@@ -122,7 +130,6 @@ const shouldShowNav = computed(() => {
   border-radius: 2px;
 }
 
-
 @media (max-width: 600px) {
   .fancy-navbar {
     flex-direction: column;
@@ -131,13 +138,17 @@ const shouldShowNav = computed(() => {
     border-radius: 0 0 16px 16px;
     gap: 1rem;
   }
-
-  .nav-links {
-    flex-wrap: wrap;
+  .logo-link {
+    margin-left: 0;
+    margin-bottom: 1rem;
     justify-content: center;
-    gap: 0.3rem;
   }
-
+  .nav-links {
+    flex-direction: column;
+    gap: 0.3rem;
+    width: 100%;
+    align-items: flex-start;
+  }
   .logo-img {
     margin-bottom: 0.5rem;
     width: 44px;
