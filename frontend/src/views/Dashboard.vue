@@ -20,7 +20,7 @@
       </router-link>
       <div class="stat-card">
         <h3>Active Assets</h3>
-        <p class="stat-number">{{ stats.assets }}</p>
+        <p class="stat-number">{{ stats.active_assets }}</p>
       </div>
 
       <div class="stat-card clickable" @click="goToDepartments">
