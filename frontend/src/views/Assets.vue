@@ -5,8 +5,9 @@
     <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
 
     <div class="assets-header">
-      <h1>Assets Management</h1>
-      <router-link to="/assets/add" class="add-btn">Add New Asset</router-link>
+
+      <router-link to="/assets/add" class="add-btn">اضافه کردن کالای جدید</router-link>
+      <h1>مدیریت کالاها</h1>
     </div>
 
     <div class="filters">
@@ -15,13 +16,13 @@
         <input
           type="text"
           v-model="filters.search"
-          placeholder="Search assets..."
+          placeholder=" جستجوی کالا ..."
           @input="debouncedSearch"
         />
       </div>
       <div class="filter-group">
         <select v-model="filters.department" @change="applyFilters">
-          <option value="">All Departments</option>
+          <option value="">بخش ها</option>
           <option v-for="dept in departments" :key="dept.id" :value="dept.id">
             {{ dept.name }}
           </option>
@@ -29,7 +30,7 @@
       </div>
       <div class="filter-group">
         <select v-model="filters.category" @change="applyFilters">
-          <option value="">All Categories</option>
+          <option value="">دسته بندی ها</option>
           <option v-for="cat in categories" :key="cat.id" :value="cat.id">
             {{ cat.name }}
           </option>
@@ -60,7 +61,7 @@
         </div>
         <div class="asset-actions">
           <button @click.stop="transferAsset(asset)" class="transfer-btn">
-            Transfer
+            انتقال
           </button>
         </div>
       </div>
@@ -505,4 +506,20 @@ onMounted(async () => {
   background: #cbd5e1;
   color: #333;
 }
+.filter-group input {
+  direction: rtl;
+  text-align: right;
+}
+.filter-group select {
+  direction: rtl;
+  text-align: right;
+  /* ظاهر فارسی‌تر و هماهنگی با placeholder input */
+  padding-right: 8px; /* کمی فاصله برای زیبایی */
+}
+
+.filter-group option {
+  direction: rtl;
+  text-align: right;
+}
+
 </style>
