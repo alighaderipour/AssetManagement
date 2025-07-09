@@ -1,7 +1,36 @@
+<template>
+  <header v-if="shouldShowNav">
+    <nav class="fancy-navbar">
+      <UserInfo />
+      <div class="main-nav-content">
+        <RouterLink to="/" class="logo-link" aria-label="صفحه اصلی">
+          <img
+            alt="Logo"
+            class="logo-img"
+            src="@/assets/logo.jpg"
+            width="48"
+            height="48"
+          />
+        </RouterLink>
+        <ul class="nav-links">
+          <li><RouterLink to="/" exact-active-class="active">صفحه اصلی</RouterLink></li>
+          <li><RouterLink to="/assets" exact-active-class="active">کالاها</RouterLink></li>
+          <li><RouterLink to="/categories" exact-active-class="active">دسته بندی</RouterLink></li>
+          <li><RouterLink to="/departments" exact-active-class="active">بخش ها</RouterLink></li>
+          <li><RouterLink to="/about" exact-active-class="active">درباره</RouterLink></li>
+        </ul>
+      </div>
+
+    </nav>
+  </header>
+  <RouterView />
+</template>
+
 <script setup>
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import UserInfo from '@/components/UserInfo.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -12,58 +41,37 @@ const shouldShowNav = computed(() => {
 })
 </script>
 
-<template>
-  <header v-if="shouldShowNav">
-    <nav class="fancy-navbar">
-      <!-- لوگو سمت راست -->
-      <RouterLink to="/" class="logo-link" aria-label="صفحه اصلی">
-        <img
-          alt="Logo"
-          class="logo-img"
-          src="@/assets/logo.jpg"
-          width="48"
-          height="48"
-        />
-      </RouterLink>
-      <!-- منو -->
-      <ul class="nav-links">
-
-        <li><RouterLink to="/" exact-active-class="active">صفحه اصلی</RouterLink></li>
-        <li><RouterLink to="/assets" exact-active-class="active">کالاها</RouterLink></li>
-        <li><RouterLink to="/categories" exact-active-class="active">دسته بندی</RouterLink></li>
-        <li><RouterLink to="/departments" exact-active-class="active">بخش ها</RouterLink></li>
-        <li><RouterLink to="/about" exact-active-class="active">درباره</RouterLink></li>
-      </ul>
-    </nav>
-  </header>
-
-  <RouterView />
-</template>
-
 <style scoped>
 .fancy-navbar {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  justify-content: flex-start;
-  direction: rtl; /* راست‌چین شدن همه عناصر */
-  background: #ffffff;
+  direction: ltr; /* الان LTR شد! */
+  background: #fff;
   padding: 1rem 2rem;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   margin: 1.5rem auto 2.5rem;
   max-width: 960px;
   border: 1px solid #e2e8f0;
-  position: relative;
   z-index: 10;
   gap: 1.5rem;
+}
+
+.main-nav-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.5rem;
+  direction: rtl; /* فقط این بخش راست‌چین بمونه */
 }
 
 .logo-link {
   text-decoration: none;
   display: flex;
   align-items: center;
-  margin-left: 2rem; /* فاصله لوگو از منو */
+  margin-left: 2rem;
 }
 
 .logo-img {
@@ -88,7 +96,7 @@ const shouldShowNav = computed(() => {
   margin: 0;
   padding: 0;
   gap: 0.5rem;
-  direction: rtl; /* منو راست‌چین بماند */
+  direction: rtl; /* منو راست‌چین */
 }
 
 .nav-links li {
@@ -136,6 +144,11 @@ const shouldShowNav = computed(() => {
     align-items: stretch;
     padding: 1rem;
     border-radius: 0 0 16px 16px;
+    gap: 1rem;
+  }
+  .main-nav-content {
+    flex-direction: column;
+    align-items: stretch;
     gap: 1rem;
   }
   .logo-link {

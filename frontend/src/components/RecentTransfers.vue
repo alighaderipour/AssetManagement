@@ -2,8 +2,8 @@
 <template>
   <div class="recent-transfers">
     <div class="section-header">
-      <h3>Recent Transfers</h3>
-      <router-link to="/transfers" class="view-all-link">View All</router-link>
+      <h3>انتقالات اخیر</h3>
+      <router-link to="/transfers" class="view-all-link">مشاهده همه انتقال ها</router-link>
     </div>
 
     <div v-if="loading" class="loading">

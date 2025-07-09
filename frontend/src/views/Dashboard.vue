@@ -1,14 +1,23 @@
 <template>
   <div class="dashboard">
     <header class="dashboard-header">
+      <!-- ۱. اکشن‌ها سمت راست -->
+      <div class="dashboard-actions">
+        <router-link to="/assets/add" class="action-btn">افزودن کالا</router-link>
+        <router-link to="/transfers" class="action-btn">مشاهده جابجایی‌ها</router-link>
+        <router-link v-if="authStore.isAdmin" to="/admin" class="action-btn admin-btn">پنل ادمین</router-link>
+      </div>
+
+      <!-- ۲. عنوان وسط/راست (بسته به نمایش) -->
       <div class="header-right">
         <h1>داشبورد مديريت كالاها</h1>
       </div>
+
+      <!-- ۳. اطلاعات کاربر سمت چپ -->
       <div class="user-info">
         <span class="farsi-greeting">
           خوش آمديد {{ authStore.user?.first_name || authStore.user?.username }}😊
         </span>
-        <button @click="logout" class="logout-btn">خروج</button>
       </div>
     </header>
 
@@ -34,12 +43,6 @@
     </div>
 
     <RecentTransfers :max-items="5" />
-
-    <div class="dashboard-actions">
-      <router-link to="/assets/add" class="action-btn">افزودن کالا</router-link>
-      <router-link to="/transfers" class="action-btn">مشاهده جابجایی‌ها</router-link>
-      <router-link v-if="authStore.isAdmin" to="/admin" class="action-btn admin-btn">پنل ادمین</router-link>
-    </div>
 
     <div class="department-chart">
       <h3>توزیع کالاها بر اساس بخش</h3>
@@ -126,10 +129,11 @@ onMounted(() => {
   margin: 0 auto;
   background: #f8fafc;
   min-height: 100vh;
-  direction: rtl; /* کل صفحه راست‌چین */
+  direction: rtl;
   font-family: "Vazirmatn", Tahoma, sans-serif;
 }
 
+/* هدر دکمه ها سمت راست، greeting سمت چپ */
 .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -140,9 +144,20 @@ onMounted(() => {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-bottom: 2px solid #e2e8f0;
-  flex-direction: row-reverse; /* ترتیب فِلِکس راست به چپ */
+  flex-direction: row-reverse;
+  gap: 1.5rem;
 }
 
+.dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  flex-direction: row-reverse;
+  align-items: center;
+  margin-left: 2rem; /* فاصله از بخش وسط */
+}
+
+/* سایر استایل‌ها همون قبلی */
 .header-right h1 {
   margin: 0;
   color: #1e293b;
@@ -177,7 +192,6 @@ onMounted(() => {
   transform: translateY(-1px);
 }
 
-/* راست‌چینِ کارت‌ها و گریدها */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -203,8 +217,6 @@ onMounted(() => {
   color: #64748b;
   font-size: 15px;
   font-weight: 600;
-  text-transform: none;
-  letter-spacing: 0;
 }
 .stat-number {
   font-size: 2.3rem;
@@ -220,14 +232,6 @@ onMounted(() => {
 .clickable:hover {
   transform: translateY(-2px);
   background: #edf2f7;
-}
-
-.dashboard-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  flex-direction: row-reverse;
 }
 
 .action-btn {
@@ -268,7 +272,6 @@ onMounted(() => {
   width: 180px;
   text-align: left;
   margin-left: 1rem;
-  margin-right: 0;
   font-size: 0.95rem;
   color: #374151;
   direction: rtl;
@@ -308,7 +311,7 @@ onMounted(() => {
   font-family: "Vazirmatn", Tahoma, sans-serif;
 }
 
-/* ریسپانسیو موبایل */
+/* ریسپانسیو */
 @media (max-width: 750px) {
   .dashboard-header,
   .dashboard-actions {
@@ -316,6 +319,7 @@ onMounted(() => {
     align-items: stretch;
     gap: 1rem;
     text-align: right;
+    margin-left: 0;
   }
   .user-info {
     flex-direction: column;
@@ -331,5 +335,4 @@ onMounted(() => {
     font-size: 0.95rem;
   }
 }
-
 </style>
