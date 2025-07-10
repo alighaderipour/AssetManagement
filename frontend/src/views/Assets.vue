@@ -3,15 +3,12 @@
     <!-- Success & Error Messages -->
     <div v-if="successMessage" class="success-msg">{{ successMessage }}</div>
     <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
-
     <div class="assets-header">
-
       <router-link to="/assets/add" class="add-btn">اضافه کردن کالای جدید</router-link>
       <h1>مدیریت کالاها</h1>
     </div>
 
     <div class="filters">
-      <!-- ... filters exactly as you had ... -->
       <div class="filter-group">
         <input
           type="text"
@@ -47,7 +44,6 @@
         class="assets-card"
         @click="viewAsset(asset.id)"
       >
-        <!-- ... card markup as you have ... -->
         <div class="asset-info">
           <h3>{{ asset.name }}</h3>
           <p class="asset-code">{{ asset.asset_code }}</p>
@@ -67,48 +63,63 @@
       </div>
     </div>
 
-    <!-- PAGINATION: controls below the grid -->
     <div v-if="totalPages > 1" class="pagination-controls">
       <button @click="changePage(page - 1)" :disabled="page === 1">«</button>
       <span>Page {{ page }} of {{ totalPages }}</span>
       <button @click="changePage(page + 1)" :disabled="page === totalPages">»</button>
     </div>
 
-    <!-- Transfer Modal ... no changes ... -->
+    <!-- Transfer Modal -->
     <div v-if="showTransferModal" class="modal-overlay" @click="closeTransferModal">
-  <div class="modal" @click.stop>
-    <h2>Transfer "{{ selectedAsset?.name }}"</h2>
+      <div class="modal" @click.stop>
+        <h2>Transfer "{{ selectedAsset?.name }}"</h2>
 
-    <div class="form-group">
-      <label for="to_department">Transfer To Department</label>
-      <select v-model="transferForm.to_department" id="to_department">
-        <option value="">Select Department</option>
-        <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-          {{ dept.name }}
-        </option>
-      </select>
+        <div class="form-group">
+          <label for="to_department">Transfer To Department</label>
+          <select v-model="transferForm.to_department" id="to_department" required>
+            <option disabled value="">Select Department</option>
+            <option v-for="dept in departments" :key="dept.id" :value="dept.id">
+              {{ dept.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="reason">Reason</label>
+          <input type="text" id="reason" v-model="transferForm.reason" />
+        </div>
+        <div class="form-group">
+          <label for="notes">Notes</label>
+          <textarea id="notes" v-model="transferForm.notes"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="image">Invoice Image</label>
+          <input
+            type="file"
+            id="image"
+            accept="image/*"
+            @change="onImageChange"
+          />
+        </div>
+        <div class="form-group">
+          <label for="price">Price</label>
+          <input
+            type="number"
+            id="price"
+            v-model="transferForm.price"
+            min="0"
+            step="any"
+            placeholder="Enter price"
+          />
+        </div>
+        <div class="modal-actions">
+          <button @click="closeTransferModal">Cancel</button>
+          <button :disabled="transferring" @click="submitTransfer">
+            {{ transferring ? 'Transferring...' : 'Submit Transfer' }}
+          </button>
+        </div>
+      </div>
     </div>
-
-    <div class="form-group">
-      <label for="reason">Reason</label>
-      <input type="text" id="reason" v-model="transferForm.reason" />
-    </div>
-
-    <div class="form-group">
-      <label for="notes">Notes</label>
-      <textarea id="notes" v-model="transferForm.notes"></textarea>
-    </div>
-
-    <div class="modal-actions">
-      <button @click="closeTransferModal">Cancel</button>
-      <button :disabled="transferring" @click="submitTransfer">
-        {{ transferring ? 'Transferring...' : 'Submit Transfer' }}
-      </button>
-    </div>
-  </div>
-</div>
-
-
   </div>
 </template>
 
@@ -123,15 +134,13 @@ const assetsStore = useAssetsStore()
 
 // PAGINATION STATE
 const page = ref(1)
-const pageSize = 6 // 🔴 show 6 assets per page
-
+const pageSize = 6
 const count = computed(() => assetsStore.count ?? 0)
 const assets = computed(() => assetsStore.assets)
 const departments = computed(() => assetsStore.departments)
 const categories = computed(() => assetsStore.categories)
 const loading = computed(() => assetsStore.loading)
 const error = computed(() => assetsStore.error)
-
 const totalPages = computed(() => Math.max(1, Math.ceil(count.value / pageSize)))
 
 // FILTER STATE
@@ -141,26 +150,28 @@ const filters = ref({
   category: ''
 })
 
-// MODAL/TRANSFER STATE (exactly as you had)
+// MODAL/TRANSFER STATE
 const showTransferModal = ref(false)
 const selectedAsset = ref(null)
 const transferForm = ref({
-  to_department: '',
-  reason: '',
-  notes: ''
+  to_department: "",
+  reason: "",
+  notes: "",
+  price: "",
+  image: null
 })
 const transferring = ref(false)
 
-// SUCCESS/ERROR MESSAGE
-const successMessage = ref("");
-const errorMessage = ref("");
+// Success & Error Messages
+const successMessage = ref("")
+const errorMessage = ref("")
 function showSuccessMessage(msg) {
-  successMessage.value = msg;
-  setTimeout(() => successMessage.value = "", 3000);
+  successMessage.value = msg
+  setTimeout(() => (successMessage.value = ""), 3000)
 }
 function showErrorMessage(msg) {
-  errorMessage.value = msg;
-  setTimeout(() => errorMessage.value = "", 3000);
+  errorMessage.value = msg
+  setTimeout(() => (errorMessage.value = ""), 3000)
 }
 
 // Debounced search
@@ -171,7 +182,7 @@ const debouncedSearch = () => {
 }
 
 const applyFilters = () => {
-  page.value = 1 // Reset to page 1 on filter change!
+  page.value = 1
   fetchPage()
 }
 
@@ -193,17 +204,18 @@ const changePage = (newPage) => {
   fetchPage()
 }
 
-// Card action handlers (no change)
+// Card action handlers
 const viewAsset = (id) => {
   router.push(`/assets/${id}/edit`)
-
 }
 const transferAsset = (asset) => {
   selectedAsset.value = asset
   transferForm.value = {
-    to_department: '',
-    reason: '',
-    notes: ''
+    to_department: "",
+    reason: "",
+    notes: "",
+    price: "",
+    image: null
   }
   showTransferModal.value = true
 }
@@ -211,24 +223,49 @@ const closeTransferModal = () => {
   showTransferModal.value = false
   selectedAsset.value = null
 }
+function onImageChange(event) {
+  transferForm.value.image = event.target.files[0] || null
+}
+
+// Main transfer handler with department validation!
 const submitTransfer = async () => {
-  transferring.value = true;
+  // Validate department selection
+  if (!transferForm.value.to_department) {
+    showErrorMessage("You must select a department for transfer.")
+    return
+  }
+
+  transferring.value = true
   try {
-    await assetsStore.transferAsset(
-      selectedAsset.value.id,
-      transferForm.value.to_department,
-      transferForm.value.notes
-    );
-    closeTransferModal();
-    showSuccessMessage("Transfer successful!");
-    fetchPage();
+    const formData = new FormData()
+    // forcibly cast department to string or number ONLY if your backend expects integer (depends on model)
+    formData.append("department", transferForm.value.to_department)
+    formData.append("notes", transferForm.value.notes || "")
+    formData.append("price", transferForm.value.price || "")
+    if (transferForm.value.image) {
+      formData.append("image", transferForm.value.image)
+    }
+    // Optionally add reason if your backend expects it:
+    if (transferForm.value.reason) {
+      formData.append("reason", transferForm.value.reason)
+    }
+    // Debug output: see what is being sent
+    console.log("Sending form data:");
+    for (const pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
+    await assetsStore.transferAssetWithFormData(selectedAsset.value.id, formData)
+    closeTransferModal()
+    showSuccessMessage("Transfer successful!")
+    fetchPage()
     if (assetsStore.fetchTransfers) await assetsStore.fetchTransfers()
   } catch (err) {
-    showErrorMessage("Transfer failed. Please try again.");
+    showErrorMessage("Transfer failed. " + (err?.message || "Please try again."))
   } finally {
-    transferring.value = false;
+    transferring.value = false
   }
-};
+}
 
 onMounted(async () => {
   await assetsStore.fetchDepartments()
@@ -236,6 +273,7 @@ onMounted(async () => {
   fetchPage()
 })
 </script>
+
 
 
 <style scoped>

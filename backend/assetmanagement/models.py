@@ -142,6 +142,8 @@ class AssetTransfer(models.Model):
         on_delete=models.CASCADE,
         related_name='initiated_transfers'
     )
+    price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    image = models.ImageField(upload_to='asset_transfers/', null=True, blank=True)
 
     def __str__(self):
         return f"{self.asset.name} from {self.from_department.name} to {self.to_department.name}"

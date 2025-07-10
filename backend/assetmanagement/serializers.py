@@ -113,13 +113,15 @@ class AssetTransferSerializer(serializers.ModelSerializer):
             'transfer_date',
             'notes',
             'transferred_by',
-            'transferred_by_name'
+            'transferred_by_name',
+            'price',
+            'image'
         ]
 
 class AssetTransferCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssetTransfer
-        fields = ['asset', 'to_department', 'notes']
+        fields = ['asset', 'to_department', 'notes', 'price', 'image']
 
     def create(self, validated_data):
         asse = validated_data['asset']

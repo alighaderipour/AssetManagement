@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.db.models import Q
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from .models import User, Department, Category, Asset, AssetTransfer
 from .serializers import (
@@ -133,6 +134,11 @@ class AssetDetailView(generics.RetrieveUpdateDestroyAPIView):
 @api_view(['PUT'])
 @permission_classes([permissions.IsAuthenticated])
 def asset_transfer_view(request, pk):
+    # Support for multipart/form-data
+    if request.content_type.startswith('multipart/'):
+        # DRF does NOT automatically attach .FILES for function-based views, but running _load_post_and_files helps.
+        request._load_post_and_files()
+
     try:
         asset = Asset.objects.get(pk=pk)
     except Asset.DoesNotExist:
@@ -147,15 +153,23 @@ def asset_transfer_view(request, pk):
     except Department.DoesNotExist:
         return Response({"error": "Target department does not exist."}, status=status.HTTP_404_NOT_FOUND)
 
-    # Create the transfer record
+    # New: Get price/image from request
+    price = request.data.get("price")  # may be string, cast/validate as needed
+    image = request.FILES.get("image")  # file object or None
+
+    # New: Get notes too (optional)
+    notes = request.data.get("notes", "")
+
     AssetTransfer.objects.create(
         asset=asset,
         from_department=asset.current_department,
         to_department=new_department,
-        transferred_by=request.user
+        transferred_by=request.user,
+        price=price if price is not None and price != "" else None,
+        image=image if image is not None else None,
+        notes=notes,
     )
 
-    # Update asset
     asset.current_department = new_department
     asset.save()
 
