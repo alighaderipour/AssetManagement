@@ -1,374 +1,429 @@
-<!-- frontend/src/views/AllTransfers.vue -->
 <template>
-    <div class="all-transfers">
-      <!-- Header -->
-      <div class="page-header">
-        <div class="header-content">
-          <h1 class="page-title">All Asset Transfers</h1>
-          <p class="page-subtitle">Manage and track asset transfers across departments</p>
-        </div>
-        <div class="header-actions">
-          <router-link to="/assets" class="btn btn-primary">
-            <span class="btn-icon">➕</span>
-            New Transfer
-          </router-link>
-        </div>
+  <div class="all-transfers">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">All Asset Transfers</h1>
+        <p class="page-subtitle">Manage and track asset transfers across departments</p>
       </div>
-  
-      <!-- Filters & Controls -->
-      <div class="controls-section">
-        <div class="filters-row">
-          <!-- Search -->
-          <div class="search-group">
-            <div class="search-input-wrapper">
-              <span class="search-icon">🔍</span>
-              <input
-                v-model="searchQuery"
-                type="search"
-                placeholder="Search by asset name, code, or notes..."
-                class="search-input"
-                @input="debouncedSearch"
-              />
-              <button 
-                v-if="searchQuery" 
-                @click="clearSearch" 
-                class="clear-search-btn"
-                title="Clear search"
-              >
-                ✕
-              </button>
-            </div>
+      <div class="header-actions">
+        <router-link to="/assets" class="btn btn-primary">
+          <span class="btn-icon">➕</span>
+          New Transfer
+        </router-link>
+      </div>
+    </div>
+
+    <!-- Filters & Controls -->
+    <div class="controls-section">
+      <div class="filters-row">
+        <!-- Search -->
+        <div class="search-group">
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+              v-model="searchQuery"
+              type="search"
+              placeholder="Search by asset name, code, or notes..."
+              class="search-input"
+              @input="debouncedSearch"
+            />
+            <button
+              v-if="searchQuery"
+              @click="clearSearch"
+              class="clear-search-btn"
+              title="Clear search"
+            >
+              ✕
+            </button>
           </div>
-  
-          <!-- Department Filters -->
-          <div class="filter-group">
-            <label class="filter-label">From Department:</label>
-            <select v-model="filters.fromDepartment" class="filter-select">
-              <option value="">All Departments</option>
-              <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                {{ dept.name }}
-              </option>
-            </select>
+        </div>
+
+        <!-- Department Filters -->
+        <div class="filter-group">
+          <label class="filter-label">From Department:</label>
+          <select v-model="filters.fromDepartment" class="filter-select">
+            <option value="">All Departments</option>
+            <option v-for="dept in departments" :key="dept.id" :value="dept.id">
+              {{ dept.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">To Department:</label>
+          <select v-model="filters.toDepartment" class="filter-select">
+            <option value="">All Departments</option>
+            <option v-for="dept in departments" :key="dept.id" :value="dept.id">
+              {{ dept.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Date Range -->
+        <div class="filter-group">
+          <label class="filter-label">Date Range:</label>
+          <div class="date-range">
+            <input
+              v-model="filters.dateFrom"
+              type="date"
+              class="date-input"
+              title="From date"
+            />
+            <span class="date-separator">to</span>
+            <input
+              v-model="filters.dateTo"
+              type="date"
+              class="date-input"
+              title="To date"
+            />
           </div>
-  
-          <div class="filter-group">
-            <label class="filter-label">To Department:</label>
-            <select v-model="filters.toDepartment" class="filter-select">
-              <option value="">All Departments</option>
-              <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                {{ dept.name }}
-              </option>
-            </select>
-          </div>
-  
-          <!-- Date Range -->
-          <div class="filter-group">
-            <label class="filter-label">Date Range:</label>
-            <div class="date-range">
-              <input 
-                v-model="filters.dateFrom" 
-                type="date" 
-                class="date-input"
-                title="From date"
-              />
-              <span class="date-separator">to</span>
-              <input 
-                v-model="filters.dateTo" 
-                type="date" 
-                class="date-input"
-                title="To date"
-              />
-            </div>
-          </div>
-  
-          <!-- Clear Filters -->
-          <button 
-            @click="clearAllFilters" 
-            class="btn btn-outline"
-            :disabled="!hasActiveFilters"
+        </div>
+
+        <!-- Clear Filters -->
+        <button
+          @click="clearAllFilters"
+          class="btn btn-outline"
+          :disabled="!hasActiveFilters"
+        >
+          Clear Filters
+        </button>
+      </div>
+
+      <!-- Results Summary & Sort -->
+      <div class="results-row">
+        <div class="results-info">
+          <span class="results-count">
+            {{ filteredTransfers.length }} of {{ allTransfers.length }} transfers
+          </span>
+          <span v-if="hasActiveFilters" class="filter-indicator">
+            (filtered)
+          </span>
+        </div>
+
+        <div class="sort-controls">
+          <label class="sort-label">Sort by:</label>
+          <select v-model="sortBy" class="sort-select">
+            <option value="transfer_date">Transfer Date</option>
+            <option value="asset_name">Asset Name</option>
+            <option value="from_department_name">From Department</option>
+            <option value="to_department_name">To Department</option>
+            <option value="transferred_by_name">Transferred By</option>
+            <option value="price">Price</option>
+          </select>
+          <button
+            @click="toggleSortOrder"
+            class="sort-order-btn"
+            :title="sortOrder === 'desc' ? 'Sort Ascending' : 'Sort Descending'"
           >
-            Clear Filters
+            {{ sortOrder === 'desc' ? '↓' : '↑' }}
           </button>
         </div>
-  
-        <!-- Results Summary & Sort -->
-        <div class="results-row">
-          <div class="results-info">
-            <span class="results-count">
-              {{ filteredTransfers.length }} of {{ allTransfers.length }} transfers
-            </span>
-            <span v-if="hasActiveFilters" class="filter-indicator">
-              (filtered)
-            </span>
-          </div>
-  
-          <div class="sort-controls">
-            <label class="sort-label">Sort by:</label>
-            <select v-model="sortBy" class="sort-select">
-              <option value="transfer_date">Transfer Date</option>
-              <option value="asset_name">Asset Name</option>
-              <option value="from_department_name">From Department</option>
-              <option value="to_department_name">To Department</option>
-              <option value="transferred_by_name">Transferred By</option>
-            </select>
-            <button 
-              @click="toggleSortOrder" 
-              class="sort-order-btn"
-              :title="sortOrder === 'desc' ? 'Sort Ascending' : 'Sort Descending'"
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="loading" class="loading-container">
+      <div class="spinner"></div>
+      <span>Loading transfers...</span>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="error-container">
+      <div class="error-icon">⚠️</div>
+      <h3>Failed to load transfers</h3>
+      <p>{{ error }}</p>
+      <button @click="fetchTransfers" class="btn btn-primary">
+        Try Again
+      </button>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="allTransfers.length === 0" class="empty-container">
+      <div class="empty-icon">📦</div>
+      <h3>No transfers found</h3>
+      <p>No asset transfers have been recorded yet.</p>
+      <router-link to="/transfers/add" class="btn btn-primary">
+        Create First Transfer
+      </router-link>
+    </div>
+
+    <!-- No Results State -->
+    <div v-else-if="filteredTransfers.length === 0" class="empty-container">
+      <div class="empty-icon">🔍</div>
+      <h3>No matching transfers</h3>
+      <p>Try adjusting your filters or search terms.</p>
+      <button @click="clearAllFilters" class="btn btn-outline">
+        Clear All Filters
+      </button>
+    </div>
+
+    <!-- Transfers Table -->
+    <div v-else class="table-container">
+      <div class="table-wrapper">
+        <table class="transfers-table">
+          <thead>
+            <tr>
+              <th class="col-asset">Asset</th>
+              <th class="col-transfer">Transfer Direction</th>
+              <th class="col-date">Date</th>
+              <th class="col-user">Transferred By</th>
+              <th class="col-notes">Notes</th>
+              <th class="col-price">Price</th>
+              <th class="col-image">Invoice/Image</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="transfer in paginatedTransfers"
+              :key="transfer.id"
+              class="transfer-row"
             >
-              {{ sortOrder === 'desc' ? '↓' : '↑' }}
+              <!-- Asset Info -->
+              <td class="col-asset">
+                <div class="asset-info">
+                  <div class="asset-name">{{ transfer.asset_name || 'Unknown Asset' }}</div>
+                  <div class="asset-code">{{ transfer.asset_code || 'N/A' }}</div>
+                </div>
+              </td>
+
+              <!-- Transfer Direction -->
+              <td class="col-transfer">
+                <div class="transfer-direction">
+                  <div class="dept-from">
+                    <span class="dept-label">From:</span>
+                    <span class="dept-name">{{ transfer.from_department_name || 'Unknown' }}</span>
+                  </div>
+                  <div class="arrow">→</div>
+                  <div class="dept-to">
+                    <span class="dept-label">To:</span>
+                    <span class="dept-name">{{ transfer.to_department_name || 'Unknown' }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Transfer Date -->
+              <td class="col-date">
+                <div class="date-info">
+                  <div class="date-main">{{ formatDate(transfer.transfer_date) }}</div>
+                  <div class="date-time">{{ formatTime(transfer.transfer_date) }}</div>
+                </div>
+              </td>
+
+              <!-- Transferred By -->
+              <td class="col-user">
+                <div class="user-info">
+                  <span class="user-icon">👤</span>
+                  <span class="user-name">{{ transfer.transferred_by_name || 'Unknown' }}</span>
+                </div>
+              </td>
+
+              <!-- Notes -->
+              <td class="col-notes">
+                <div class="notes-content">
+                  <span v-if="transfer.notes" class="notes-text" :title="transfer.notes">
+                    {{ truncateText(transfer.notes, 50) }}
+                  </span>
+                  <span v-else class="no-notes">—</span>
+                </div>
+              </td>
+
+              <!-- Price -->
+              <td class="col-price">
+                <span v-if="transfer.price">
+                  {{ Number(transfer.price).toLocaleString() }} تومان
+                </span>
+                <span v-else>—</span>
+              </td>
+
+              <!-- Image (invoice/receipt) -->
+              <td class="col-image">
+                <span v-if="transfer.image">
+  <a :href="getTransferImageUrl(transfer.image)" target="_blank">
+    <img
+      :src="getTransferImageUrl(transfer.image)"
+      alt="Invoice/Image"
+      style="height:36px;max-width:90px;object-fit:contain;"
+    />
+  </a>
+</span>
+
+                <span v-else>—</span>
+              </td>
+
+              <!-- Actions -->
+              <td class="col-actions">
+                <div class="action-buttons">
+                  <button
+                    @click="viewTransferDetails(transfer)"
+                    class="action-btn view-btn"
+                    title="View Details"
+                  >
+                    👁️
+                  </button>
+                  <button
+                    @click="editTransfer(transfer)"
+                    class="action-btn edit-btn"
+                    title="Edit Transfer"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    @click="deleteTransfer(transfer)"
+                    class="action-btn delete-btn"
+                    title="Delete Transfer"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="pagination-container">
+        <div class="pagination-info">
+          Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ filteredTransfers.length }} transfers
+        </div>
+
+        <div class="pagination-controls">
+          <!-- Items per page -->
+          <div class="per-page-control">
+            <label class="per-page-label">Show:</label>
+            <select v-model="itemsPerPage" class="per-page-select">
+              <option :value="10">10</option>
+              <option :value="25">25</option>
+              <option :value="50">50</option>
+              <option :value="100">100</option>
+            </select>
+            <span class="per-page-suffix">per page</span>
+          </div>
+
+          <!-- Page Navigation -->
+          <div class="page-navigation">
+            <button
+              @click="goToPage(1)"
+              :disabled="currentPage === 1"
+              class="page-btn"
+              title="First Page"
+            >
+              ⏮️
+            </button>
+            <button
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              class="page-btn"
+              title="Previous Page"
+            >
+              ◀️
+            </button>
+
+            <div class="page-numbers">
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                @click="goToPage(page)"
+                :class="['page-number', { active: page === currentPage }]"
+              >
+                {{ page }}
+              </button>
+            </div>
+
+            <button
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              class="page-btn"
+              title="Next Page"
+            >
+              ▶️
+            </button>
+            <button
+              @click="goToPage(totalPages)"
+              :disabled="currentPage === totalPages"
+              class="page-btn"
+              title="Last Page"
+            >
+              ⏭️
             </button>
           </div>
         </div>
       </div>
-  
-      <!-- Loading State -->
-      <div v-if="loading" class="loading-container">
-        <div class="spinner"></div>
-        <span>Loading transfers...</span>
-      </div>
-  
-      <!-- Error State -->
-      <div v-else-if="error" class="error-container">
-        <div class="error-icon">⚠️</div>
-        <h3>Failed to load transfers</h3>
-        <p>{{ error }}</p>
-        <button @click="fetchTransfers" class="btn btn-primary">
-          Try Again
-        </button>
-      </div>
-  
-      <!-- Empty State -->
-      <div v-else-if="allTransfers.length === 0" class="empty-container">
-        <div class="empty-icon">📦</div>
-        <h3>No transfers found</h3>
-        <p>No asset transfers have been recorded yet.</p>
-        <router-link to="/transfers/add" class="btn btn-primary">
-          Create First Transfer
-        </router-link>
-      </div>
-  
-      <!-- No Results State -->
-      <div v-else-if="filteredTransfers.length === 0" class="empty-container">
-        <div class="empty-icon">🔍</div>
-        <h3>No matching transfers</h3>
-        <p>Try adjusting your filters or search terms.</p>
-        <button @click="clearAllFilters" class="btn btn-outline">
-          Clear All Filters
-        </button>
-      </div>
-  
-      <!-- Transfers Table -->
-      <div v-else class="table-container">
-        <div class="table-wrapper">
-          <table class="transfers-table">
-            <thead>
-              <tr>
-                <th class="col-asset">Asset</th>
-                <th class="col-transfer">Transfer Direction</th>
-                <th class="col-date">Date</th>
-                <th class="col-user">Transferred By</th>
-                <th class="col-notes">Notes</th>
-                <th class="col-actions">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr 
-                v-for="transfer in paginatedTransfers" 
-                :key="transfer.id"
-                class="transfer-row"
-              >
-                <!-- Asset Info -->
-                <td class="col-asset">
-                  <div class="asset-info">
-                    <div class="asset-name">{{ transfer.asset_name || 'Unknown Asset' }}</div>
-                    <div class="asset-code">{{ transfer.asset_code || 'N/A' }}</div>
-                  </div>
-                </td>
-  
-                <!-- Transfer Direction -->
-                <td class="col-transfer">
-                  <div class="transfer-direction">
-                    <div class="dept-from">
-                      <span class="dept-label">From:</span>
-                      <span class="dept-name">{{ transfer.from_department_name || 'Unknown' }}</span>
-                    </div>
-                    <div class="arrow">→</div>
-                    <div class="dept-to">
-                      <span class="dept-label">To:</span>
-                      <span class="dept-name">{{ transfer.to_department_name || 'Unknown' }}</span>
-                    </div>
-                  </div>
-                </td>
-  
-                <!-- Transfer Date -->
-                <td class="col-date">
-                  <div class="date-info">
-                    <div class="date-main">{{ formatDate(transfer.transfer_date) }}</div>
-                    <div class="date-time">{{ formatTime(transfer.transfer_date) }}</div>
-                  </div>
-                </td>
-  
-                <!-- Transferred By -->
-                <td class="col-user">
-                  <div class="user-info">
-                    <span class="user-icon">👤</span>
-                    <span class="user-name">{{ transfer.transferred_by_name || 'Unknown' }}</span>
-                  </div>
-                </td>
-  
-                <!-- Notes -->
-                <td class="col-notes">
-                  <div class="notes-content">
-                    <span v-if="transfer.notes" class="notes-text" :title="transfer.notes">
-                      {{ truncateText(transfer.notes, 50) }}
-                    </span>
-                    <span v-else class="no-notes">—</span>
-                  </div>
-                </td>
-  
-                <!-- Actions -->
-                <td class="col-actions">
-                  <div class="action-buttons">
-                    <button 
-                      @click="viewTransferDetails(transfer)" 
-                      class="action-btn view-btn"
-                      title="View Details"
-                    >
-                      👁️
-                    </button>
-                    <button 
-                      @click="editTransfer(transfer)" 
-                      class="action-btn edit-btn"
-                      title="Edit Transfer"
-                    >
-                      ✏️
-                    </button>
-                    <button 
-                      @click="deleteTransfer(transfer)" 
-                      class="action-btn delete-btn"
-                      title="Delete Transfer"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+    </div>
+
+    <!-- Transfer Details Modal -->
+    <div v-if="showDetailsModal" class="modal-overlay" @click="closeDetailsModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>Transfer Details</h3>
+          <button @click="closeDetailsModal" class="modal-close">✕</button>
         </div>
-  
-        <!-- Pagination -->
-        <div v-if="totalPages > 1" class="pagination-container">
-          <div class="pagination-info">
-            Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ filteredTransfers.length }} transfers
-          </div>
-          
-          <div class="pagination-controls">
-            <!-- Items per page -->
-            <div class="per-page-control">
-              <label class="per-page-label">Show:</label>
-              <select v-model="itemsPerPage" class="per-page-select">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
-              </select>
-              <span class="per-page-suffix">per page</span>
+        <div class="modal-body">
+          <div v-if="selectedTransfer" class="transfer-details">
+            <div class="detail-row">
+              <span class="detail-label">Asset:</span>
+              <span class="detail-value">{{ selectedTransfer.asset_name }} ({{ selectedTransfer.asset_code }})</span>
             </div>
-  
-            <!-- Page Navigation -->
-            <div class="page-navigation">
-              <button 
-                @click="goToPage(1)" 
-                :disabled="currentPage === 1"
-                class="page-btn"
-                title="First Page"
-              >
-                ⏮️
-              </button>
-              <button 
-                @click="goToPage(currentPage - 1)" 
-                :disabled="currentPage === 1"
-                class="page-btn"
-                title="Previous Page"
-              >
-                ◀️
-              </button>
-              
-              <div class="page-numbers">
-                <button 
-                  v-for="page in visiblePages" 
-                  :key="page"
-                  @click="goToPage(page)"
-                  :class="['page-number', { active: page === currentPage }]"
-                >
-                  {{ page }}
-                </button>
-              </div>
-              
-              <button 
-                @click="goToPage(currentPage + 1)" 
-                :disabled="currentPage === totalPages"
-                class="page-btn"
-                title="Next Page"
-              >
-                ▶️
-              </button>
-              <button 
-                @click="goToPage(totalPages)" 
-                :disabled="currentPage === totalPages"
-                class="page-btn"
-                title="Last Page"
-              >
-                ⏭️
-              </button>
+            <div class="detail-row">
+              <span class="detail-label">From Department:</span>
+              <span class="detail-value">{{ selectedTransfer.from_department_name }}</span>
             </div>
-          </div>
-        </div>
-      </div>
-  
-      <!-- Transfer Details Modal -->
-      <div v-if="showDetailsModal" class="modal-overlay" @click="closeDetailsModal">
-        <div class="modal-content" @click.stop>
-          <div class="modal-header">
-            <h3>Transfer Details</h3>
-            <button @click="closeDetailsModal" class="modal-close">✕</button>
-          </div>
-          <div class="modal-body">
-            <div v-if="selectedTransfer" class="transfer-details">
-              <div class="detail-row">
-                <span class="detail-label">Asset:</span>
-                <span class="detail-value">{{ selectedTransfer.asset_name }} ({{ selectedTransfer.asset_code }})</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">From Department:</span>
-                <span class="detail-value">{{ selectedTransfer.from_department_name }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">To Department:</span>
-                <span class="detail-value">{{ selectedTransfer.to_department_name }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Transfer Date:</span>
-                <span class="detail-value">{{ formatFullDate(selectedTransfer.transfer_date) }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Transferred By:</span>
-                <span class="detail-value">{{ selectedTransfer.transferred_by_name }}</span>
-              </div>
-              <div v-if="selectedTransfer.notes" class="detail-row">
-                <span class="detail-label">Notes:</span>
-                <span class="detail-value">{{ selectedTransfer.notes }}</span>
-              </div>
+            <div class="detail-row">
+              <span class="detail-label">To Department:</span>
+              <span class="detail-value">{{ selectedTransfer.to_department_name }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Transfer Date:</span>
+              <span class="detail-value">{{ formatFullDate(selectedTransfer.transfer_date) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Transferred By:</span>
+              <span class="detail-value">{{ selectedTransfer.transferred_by_name }}</span>
+            </div>
+            <div v-if="selectedTransfer.notes" class="detail-row">
+              <span class="detail-label">Notes:</span>
+              <span class="detail-value">{{ selectedTransfer.notes }}</span>
+            </div>
+            <!-- PRICE -->
+            <div class="detail-row">
+              <span class="detail-label">Price:</span>
+              <span class="detail-value">
+                <template v-if="selectedTransfer.price">
+                  {{ Number(selectedTransfer.price).toLocaleString() }} تومان
+                </template>
+                <template v-else>—</template>
+              </span>
+            </div>
+            <!-- IMAGE -->
+            <div class="detail-row">
+              <span class="detail-label">Image:</span>
+              <span class="detail-value">
+                <template v-if="selectedTransfer.image">
+                  <a
+                    :href="backendMediaUrl + selectedTransfer.image"
+                    target="_blank"
+                  >
+                    <img
+                      :src="backendMediaUrl + selectedTransfer.image"
+                      alt="Transfer Image"
+                      style="height:60px;max-width:140px;object-fit:contain;"
+                    />
+                  </a>
+                </template>
+                <template v-else>—</template>
+              </span>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </template>
+  </div>
+</template>
+
   
-  <script setup>
+<script setup>
   import { ref, computed, onMounted, watch } from 'vue'
   import { useAuthStore } from '@/stores/auth'
   import jalaali from 'jalaali-js'
@@ -390,7 +445,9 @@ function toJalali(dateString) {
   const departments = ref([])
   const loading = ref(false)
   const error = ref(null)
-  
+  const backendMediaUrl = "http://localhost:8000/media/"
+// Or use your actual backend url/media prefix
+
   // Search & Filters
   const searchQuery = ref('')
   const filters = ref({
@@ -420,7 +477,13 @@ function toJalali(dateString) {
            filters.value.dateFrom || 
            filters.value.dateTo
   })
-  
+  function getTransferImageUrl(img) {
+  if (!img) return "";
+  if (img.startsWith("http")) return img;
+  if (img.startsWith("/media/")) return "http://localhost:8000" + img;
+  return "http://localhost:8000/media/" + img;
+}
+
   const filteredTransfers = computed(() => {
     let result = [...allTransfers.value]
   

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 import uuid
-
+#haha models
 
 class User(AbstractUser):
     ROLE_CHOICES = [
