@@ -54,6 +54,10 @@
           <span class="asset-status" :class="asset.status">
             {{ asset.status }}
           </span>
+          <p>
+  <strong>جمع هزینه انتقال (Total Transfer Cost):</strong>
+  {{ asset.total_transfer_cost ? asset.total_transfer_cost.toLocaleString() : '۰' }} تومان
+</p>
         </div>
         <div class="asset-actions">
           <button @click.stop="transferAsset(asset)" class="transfer-btn">

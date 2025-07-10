@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import (
@@ -16,6 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
+
 
     def validate(self, data):
         user = authenticate(
@@ -50,6 +52,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class AssetSerializer(serializers.ModelSerializer):
+    total_transfer_cost = serializers.SerializerMethodField()
     category_name = serializers.CharField(
         source='category.name', read_only=True
     )
@@ -73,6 +76,8 @@ class AssetSerializer(serializers.ModelSerializer):
             'image', 'category_name', 'department_name',
             'current_department_name', 'created_by',
             'created_by_name', 'created_at', 'updated_at',
+            'total_transfer_cost'
+
         ]
         read_only_fields = ['code', 'created_by', 'created_at', 'updated_at']
 
@@ -80,6 +85,10 @@ class AssetSerializer(serializers.ModelSerializer):
         # auto-set the creator
         validated_data['created_by'] = self.context['request'].user
         return super().create(validated_data)
+
+    def get_total_transfer_cost(self, obj):
+        transfers = obj.assettransfer_set.aggregate(total=Sum('price'))
+        return transfers['total'] or 0
 
 
 class AssetTransferSerializer(serializers.ModelSerializer):
