@@ -96,7 +96,7 @@ class AssetTransferSerializer(serializers.ModelSerializer):
         source='asset.name', read_only=True
     )
     asset_code = serializers.CharField(
-        source='asset.asset', read_only=True
+        source='asset.asset_code', read_only=True
     )
     from_department_name = serializers.CharField(
         source='from_department.name', read_only=True

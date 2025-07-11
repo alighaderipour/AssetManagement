@@ -332,7 +332,7 @@ onMounted(async () => {
         <div class="form-group">
           <label for="current_value" class="form-label">
             <span class="label-icon">💎</span>
-            ارزش فعلی (تومان)
+           تعداد
           </label>
           <input
             id="current_value"
