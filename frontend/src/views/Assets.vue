@@ -45,19 +45,44 @@
         @click="viewAsset(asset.id)"
       >
         <div class="asset-info">
-          <h3>{{ asset.name }}</h3>
-          <p class="asset-code">{{ asset.asset_code }}</p>
-          <p class="asset-category">{{ asset.category_name }}</p>
-          <p class="asset-current-department" v-if="asset.current_department_name">
-            <b>Current Department:</b> {{ asset.current_department_name }} {{ asset.current_department_code }}
-          </p>
-          <span class="asset-status" :class="asset.status">
-            {{ asset.status }}
-          </span>
-          <p>
-          <strong>جمع هزینه انتقال (Total Transfer Cost):</strong>
-            {{ asset.total_transfer_cost ? asset.total_transfer_cost.toLocaleString() : '۰' }} تومان
-          </p>
+         <div class="asset-header">
+      <h3 class="asset-name">{{ asset.name }}</h3>
+      <span class="asset-status" :class="asset.status">
+        {{ getStatusLabel(asset.status) }}
+      </span>
+    </div>
+
+    <div class="asset-details">
+      <div class="detail-item">
+        <span class="detail-icon">🏷️</span>
+        <span class="detail-label">کد کالا:</span>
+        <span class="asset-code">{{ asset.asset_code }}</span>
+      </div>
+
+      <div class="detail-item">
+        <span class="detail-icon">📦</span>
+        <span class="detail-label">دسته‌بندی:</span>
+        <span class="detail-value">{{ asset.category_name }}</span>
+      </div>
+
+      <div class="detail-item" v-if="asset.current_department_name">
+        <span class="detail-icon">🏢</span>
+        <span class="detail-label">بخش فعلی:</span>
+        <span class="detail-value department-info">
+          {{ asset.current_department_name }}
+          <span class="department-code">{{ asset.current_department_code }}</span>
+        </span>
+      </div>
+
+      <div class="detail-item cost-item">
+        <span class="detail-icon">💰</span>
+        <span class="detail-label">جمع هزینه انتقال:</span>
+        <span class="cost-value">
+          {{ asset.total_transfer_cost ? Number(asset.total_transfer_cost).toLocaleString() : '۰' }}
+          <span class="currency">تومان</span>
+        </span>
+      </div>
+    </div>
         </div>
         <div class="asset-actions">
           <button @click.stop="transferAsset(asset)" class="transfer-btn">
@@ -189,7 +214,15 @@ const applyFilters = () => {
   page.value = 1
   fetchPage()
 }
-
+const getStatusLabel = (status) => {
+  const statusLabels = {
+    'active': 'فعال',
+    'inactive': 'غیرفعال',
+    'maintenance': 'تعمیر',
+    'retired': 'خارج از خدمت'
+  }
+  return statusLabels[status] || status
+  }
 // Fetch assets for the current page and filters
 const fetchPage = async () => {
   await assetsStore.fetchAssets({
@@ -563,5 +596,220 @@ onMounted(async () => {
   direction: rtl;
   text-align: right;
 }
+.asset-info {
+  padding: 1.25rem;
+}
 
+.asset-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 0.75rem;
+}
+
+.asset-name {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.asset-status {
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.asset-status.active {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.asset-status.inactive {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.asset-status.maintenance {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.asset-status.retired {
+  background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+  color: #383d41;
+  border: 1px solid #d6d8db;
+}
+
+.asset-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.detail-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.detail-icon {
+  font-size: 1rem;
+  min-width: 20px;
+  text-align: center;
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  min-width: 80px;
+}
+
+.detail-value {
+  font-size: 0.875rem;
+  color: #334155;
+  font-weight: 400;
+  flex: 1;
+}
+
+.asset-code {
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  color: #3730a3;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #c7d2fe;
+  flex: 1;
+}
+
+.department-info {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.department-code {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.cost-item {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #bbf7d0;
+}
+
+.cost-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.currency {
+  font-size: 0.75rem;
+  color: #059669;
+  font-weight: 500;
+}
+
+/* بهبود استایل کارت کلی */
+.assets-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.assets-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: #cbd5e1;
+}
+
+.asset-actions {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfc;
+}
+
+.transfer-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+}
+
+.transfer-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .asset-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .asset-status {
+    align-self: flex-start;
+  }
+
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .detail-label {
+    min-width: auto;
+    font-size: 0.8rem;
+  }
+
+  .cost-value {
+    justify-content: flex-start;
+  }
+}
 </style>

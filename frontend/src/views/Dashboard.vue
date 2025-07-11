@@ -33,7 +33,8 @@
         <p class="stat-number">{{ stats.active_assets }}</p>
       </div>
       <div class="stat-card clickable" @click="goToDepartmentAssets">
-  <h3>بخش‌ها</h3>
+  <h3>
+بخش ها و کالاها</h3>
   <p class="stat-number">{{ stats.total_departments }}</p>
 </div>
 
