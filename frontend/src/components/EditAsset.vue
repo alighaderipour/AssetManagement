@@ -1,26 +1,10 @@
-<!-- frontend/src/views/EditAsset.vue -->
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAssetsStore } from '@/stores/assets'
 import { useAuthStore } from '@/stores/auth'
 import jalaali from 'jalaali-js'
-
-// تابع تبدیل تاریخ میلادی به شمسی
-const toJalali = (dateString) => {
-  if (!dateString) return 'تاریخ نامعتبر'
-
-  try {
-    const date = new Date(dateString)
-    const j = jalaali.toJalaali(date.getFullYear(), date.getMonth() + 1, date.getDate())
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    return `${j.jy}/${j.jm.toString().padStart(2, '0')}/${j.jd.toString().padStart(2, '0')} - ${hours}:${minutes}`
-  } catch (error) {
-    console.error('خطا در تبدیل تاریخ:', error)
-    return 'تاریخ نامعتبر'
-  }
-}
+import DatePicker from 'vue3-persian-datetime-picker'
 
 const router = useRouter()
 const route = useRoute()
@@ -48,38 +32,43 @@ const departments = computed(() => assetsStore.departments)
 const categories = computed(() => assetsStore.categories)
 const isEditMode = computed(() => route.path.includes('/edit'))
 
-const jalaliPurchaseDate = computed(() => toJalali(form.value.purchase_date))
-const jalaliCreatedAt = computed(() => toJalali(asset.value?.created_at))
-
-// تابع برچسب‌های فارسی برای وضعیت
-const getStatusLabel = (status) => {
-  const statusLabels = {
-    'active': 'فعال',
-    'inactive': 'غیرفعال',
-    'under_maintenance': 'در حال تعمیر',
-    'disposed': 'از رده خارج'
+const toJalali = (dateString) => {
+  if (!dateString) return ''
+  try {
+    const dateObj = new Date(dateString)
+    const j = jalaali.toJalaali(dateObj)
+    return `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`
+  } catch {
+    return ''
   }
-  return statusLabels[status] || status
 }
+
+const jalaliCreatedAt = computed(() => toJalali(asset.value?.created_at))
 
 const loadAsset = async () => {
   loading.value = true
   try {
     const id = route.params.id
     asset.value = await assetsStore.getAsset(id)
-
+    const assetData = asset.value
+    let pd = ''
+    if (assetData.purchase_date) {
+      const d = new Date(assetData.purchase_date)
+      const j = jalaali.toJalaali(d)
+      pd = `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`
+    }
     form.value = {
-      name: asset.value.name || '',
-      description: asset.value.description || '',
-      category: asset.value.category || '',
-      current_department: asset.value.current_department || '',
-      status: asset.value.status || 'active',
-      purchase_date: asset.value.purchase_date || '',
-      purchase_price: asset.value.purchase_price || '',
-      current_value: asset.value.current_value || '',
-      serial_number: asset.value.serial_number || '',
-      brand: asset.value.brand || '',
-      model: asset.value.model || ''
+      name: assetData.name || '',
+      description: assetData.description || '',
+      category: assetData.category || '',
+      current_department: assetData.current_department || '',
+      status: assetData.status || 'active',
+      purchase_date: pd,
+      purchase_price: assetData.purchase_price || '',
+      current_value: assetData.current_value || '',
+      serial_number: assetData.serial_number || '',
+      brand: assetData.brand || '',
+      model: assetData.model || ''
     }
   } catch (error) {
     console.error('خطا در بارگذاری دارایی:', error)
@@ -91,12 +80,25 @@ const loadAsset = async () => {
 
 const submitAsset = async () => {
   if (!isEditMode.value) return
-
   saving.value = true
+  const payload = {}
   try {
-    const payload = {}
-    for (const [k, v] of Object.entries(form.value)) {
-      if (v !== '' && k !== 'purchase_date') payload[k] = v
+    const purchaseDate = form.value.purchase_date
+    if (purchaseDate && /^\d{4}\/\d{2}\/\d{2}$/.test(purchaseDate)) {
+      const [jy, jm, jd] = purchaseDate.split('/').map(Number)
+      const { gy, gm, gd } = jalaali.toGregorian(jy, jm, jd)
+      payload.purchase_date = `${gy}-${String(gm).padStart(2, '0')}-${String(gd).padStart(2, '0')}`
+    } else if (purchaseDate && !/^\d{4}-\d{2}-\d{2}$/.test(purchaseDate)) {
+      alert('فرمت تاریخ خرید نامعتبر است')
+      return
+    } else {
+      payload.purchase_date = purchaseDate
+    }
+
+    for (const [key, value] of Object.entries(form.value)) {
+      if (value !== '' && key !== 'purchase_date') {
+        payload[key] = value
+      }
     }
 
     if (payload.purchase_price) payload.purchase_price = parseFloat(payload.purchase_price)
@@ -106,7 +108,7 @@ const submitAsset = async () => {
     alert('دارایی با موفقیت به‌روزرسانی شد!')
     router.push('/assets')
   } catch (error) {
-    console.error('خطا در به‌روزرسانی دارایی:', error)
+    console.error('خطا در ذخیره:', error)
     alert('خطا در به‌روزرسانی دارایی: ' + (error.response?.data?.detail || error.message))
   } finally {
     saving.value = false
@@ -293,19 +295,21 @@ onMounted(async () => {
 
         <div class="form-row">
           <div class="form-group">
-            <label for="purchase_date" class="form-label">
-              <span class="label-icon">📅</span>
-              تاریخ خرید (شمسی)
-            </label>
-            <input
-              id="purchase_date"
-              :value="jalaliPurchaseDate"
-              type="text"
-              disabled
-              class="form-input readonly-field"
-            />
-            <small class="field-help">تاریخ بر اساس تقویم شمسی</small>
-          </div>
+    <label for="purchase_date" class="form-label">
+      <span class="label-icon">📅</span>
+      تاریخ خرید (شمسی)
+    </label>
+    <DatePicker
+      v-model="form.purchase_date"
+      format="jYYYY/jMM/jDD"
+      display-format="jYYYY/jMM/jDD"
+      :disabled="!isEditMode"
+      id="purchase_date"
+      class="form-input"
+      placeholder="تاریخ را انتخاب کنید"
+    />
+    <small class="field-help">تاریخ بر اساس تقویم شمسی نمایش داده می‌شود</small>
+  </div>
 
           <div class="form-group">
             <label for="purchase_price" class="form-label">
