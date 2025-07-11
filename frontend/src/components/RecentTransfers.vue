@@ -73,7 +73,7 @@
     <!-- Quick Actions -->
     <div v-if="transfers.length > 0" class="quick-actions">
       <router-link to="/transfers" class="action-btn view-all">
-        مشاهده همه ({{ transfers.length }})
+        مشاهده همه
       </router-link>
       <router-link to="/assets" class="action-btn add-new">
         + انتقال جدید
