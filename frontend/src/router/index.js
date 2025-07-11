@@ -43,6 +43,12 @@ const routes = [
   meta: { requiresAuth: true }
 }
 ,
+    {
+  path: '/department-assets',
+  name: 'DepartmentAssets',
+  component: () => import('@/views/DepartmentsAssets.vue'),
+}
+,
   {
     path: "/assets/add",
     name: "AddAsset",

@@ -32,10 +32,11 @@
         <h3>کالاهای فعال</h3>
         <p class="stat-number">{{ stats.active_assets }}</p>
       </div>
-      <div class="stat-card clickable" @click="goToDepartments">
-        <h3>بخش‌ها</h3>
-        <p class="stat-number">{{ stats.total_departments }}</p>
-      </div>
+      <div class="stat-card clickable" @click="goToDepartmentAssets">
+  <h3>بخش‌ها</h3>
+  <p class="stat-number">{{ stats.total_departments }}</p>
+</div>
+
       <div class="stat-card clickable" @click="goToCategories">
         <h3>دسته‌بندی‌ها</h3>
         <p class="stat-number">{{ stats.total_categories || 0 }}</p>
@@ -86,6 +87,9 @@ const maxDeptCount = computed(() => {
   const values = Object.values(stats.value.assets_by_department)
   return values.length > 0 ? Math.max(...values) : 0
 })
+const goToDepartmentAssets = () => {
+  router.push('/department-assets')
+}
 
 const fetchStats = async () => {
   try {

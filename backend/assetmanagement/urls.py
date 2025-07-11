@@ -34,4 +34,7 @@ urlpatterns = [
     path('departments/<int:pk>/', DepartmentDetailView.as_view(), name='department-detail'),
     path('categories/', CategoryListCreateView.as_view(), name='category-list'),
     path('categories/<int:pk>/', CategoryDetailView.as_view(), name='category-detail'),
+
+    path('department-assets/', views.department_assets, name='department-assets'),
+
 ]

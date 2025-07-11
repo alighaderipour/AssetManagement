@@ -272,3 +272,37 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticated]
 
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def department_assets(request):
+    search = request.query_params.get('search', '')
+    from .models import Department, Asset
+
+    departments = Department.objects.all()
+    if search:
+        departments = departments.filter(name__icontains=search)
+
+    result = []
+    for dept in departments:
+        assets = Asset.objects.filter(current_department=dept)
+        asset_data = [
+            {
+                "asset_id": a.id,
+                "name": a.name,
+                "code": a.asset_code,
+                "current_value": a.current_value,
+            }
+            for a in assets
+        ]
+        if asset_data:
+            result.append({
+                "department_id": dept.id,
+                "department_name": dept.name,
+                "assets": asset_data
+            })
+    return Response(result)
