@@ -12,8 +12,11 @@
       <ul>
         <li>Department & Category Management</li>
         <li>Asset Tracking with Transfer Logs</li>
+        <li>Asset/Invoice File Uploads</li>
         <li>User Roles: Admin and Regular</li>
         <li>Dashboard with Real-Time Stats</li>
+        <li>Persian (Jalali) Calendar Support</li>
+        <li>Right-to-Left (RTL) UI</li>
         <li>JWT-based Authentication</li>
         <li>Responsive UI with Vue & Pinia</li>
       </ul>
@@ -28,16 +31,23 @@
       <div class="tech-tags">
         <span>Vue 3</span>
         <span>Pinia</span>
+        <span>Pinia PersistedState</span>
+        <span>Vue Router</span>
         <span>Django</span>
         <span>Django REST Framework</span>
         <span>SQL Server</span>
+
+        <span>Jalali Calendar</span>
+        <span>RTL Layout</span>
+        <span>ESLint & Prettier</span>
+        <span>File Upload</span>
       </div>
     </section>
   </div>
 </template>
 
 <script setup>
-// no logic needed for static page
+// static page, no logic needed!
 </script>
 
 <style scoped>
@@ -48,6 +58,8 @@
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
+  direction: ltr !important; /* اگر صفحه عربی/فارسی هم لازم داشتی */
+  font-family: 'Vazirmatn', Vazir, Tahoma, Arial, sans-serif;
 }
 
 .hero {
