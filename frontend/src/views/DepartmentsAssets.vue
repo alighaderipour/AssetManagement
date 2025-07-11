@@ -78,19 +78,19 @@
 
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const departmentsAssets = ref([])
 const search = ref('')
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
+const selectedDepartmentId = ref(null) // ✅
 
-// pagination for assets inside each department
 const currentPages = ref({})
 
-// pagination for departments
 const deptPage = ref(1)
 const perDeptPage = 3
 
@@ -134,6 +134,7 @@ const prevPage = (deptId) => {
     currentPages.value[deptId] = (currentPages.value[deptId] || 1) - 1
   }
 }
+const selectedDepartmentName = ref(null)
 
 const fetchData = async () => {
   let url = 'http://localhost:8000/api/department-assets/'
@@ -142,25 +143,46 @@ const fetchData = async () => {
     headers: { Authorization: `Bearer ${authStore.accessToken}` },
   })
   if (resp.ok) {
-    const data = await resp.json()
+    let data = await resp.json()
+    // اگر فیلتر نام دپارتمان فعال بود فقط همون بخش رو نشون بده
+    if (selectedDepartmentName.value) {
+      data = data.filter(
+        dept => dept.department_name === selectedDepartmentName.value
+      )
+    }
     departmentsAssets.value = data
-
-    // Initialize pages for asset pagination
+    // برا بقیه قسمت‌ها هم مثل قبله...
     data.forEach((dept) => {
       if (!(dept.department_id in currentPages.value)) {
         currentPages.value[dept.department_id] = 1
       }
     })
-
     deptPage.value = 1
   } else {
     departmentsAssets.value = []
   }
 }
 
-// initial load
-fetchData()
+
+// --- اینو اضافه کن
+onMounted(() => {
+  const deptParam = route.query.department
+  if (deptParam) {
+    selectedDepartmentName.value = decodeURIComponent(deptParam)
+  }
+  fetchData()
+})
+
+watch(
+  () => route.query.department,
+  (newDept) => {
+    if (newDept) selectedDepartmentName.value = decodeURIComponent(newDept)
+    else selectedDepartmentName.value = null
+    fetchData()
+  }
+)
 </script>
+
 
 <style scoped>
 

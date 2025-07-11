@@ -51,24 +51,30 @@
         توزیع کالاها بر اساس بخش
       </h3>
       <div class="modern-chart-container">
-        <div v-for="(count, dept) in stats.assets_by_department" :key="dept" class="modern-chart-bar">
-          <span class="modern-bar-label">
-            <span class="dept-emoji">🏢</span>
-            {{ dept }}
-          </span>
-          <div
-            class="modern-bar-bg"
-            :title="`کل کالاها در ${dept}: ${count}`"
-          >
-            <div
-              class="modern-bar-fill"
-              :style="{ width: (maxDeptCount ? (count / maxDeptCount) * 100 : 0) + '%'}"
-            >
-              <span class="modern-bar-value">{{ count }}</span>
-            </div>
-          </div>
-          <span class="modern-bar-percent">{{ ((count / maxDeptCount) * 100).toFixed(0) }}٪</span>
-        </div>
+        <div
+  v-for="(count, dept) in stats.assets_by_department"
+  :key="dept"
+  class="modern-chart-bar clickable-bar"
+  @click="goToDepartmentAssets(dept)"
+>
+  <span class="modern-bar-label">
+    <span class="dept-emoji">🏢</span>
+    {{ dept }}
+  </span>
+  <div
+    class="modern-bar-bg"
+    :title="`کل کالاها در ${dept}: ${count}`"
+  >
+    <div
+      class="modern-bar-fill"
+      :style="{ width: (maxDeptCount ? (count / maxDeptCount) * 100 : 0) + '%' }"
+    >
+      <span class="modern-bar-value">{{ count }}</span>
+    </div>
+  </div>
+  <span class="modern-bar-percent">{{ ((count / maxDeptCount) * 100).toFixed(0) }}٪</span>
+</div>
+
       </div>
     </div>
     <div v-else class="no-data modern-no-data">
@@ -99,9 +105,13 @@ const maxDeptCount = computed(() => {
   return values.length > 0 ? Math.max(...values) : 0
 })
 
-const goToDepartmentAssets = () => {
-  router.push('/department-assets')
+const goToDepartmentAssets = (deptName) => {
+  router.push({
+    path: '/department-assets',
+    query: { department: deptName }
+  })
 }
+
 
 const fetchStats = async () => {
   try {
@@ -419,5 +429,13 @@ onMounted(() => {
   .stats-grid {
     grid-template-columns: 1fr;
   }
+}
+.clickable-bar {
+  cursor: pointer;
+  transition: box-shadow 0.22s;
+}
+.clickable-bar:hover {
+  box-shadow: 0px 2px 10px #cfdbfc60;
+  filter: brightness(1.06);
 }
 </style>
