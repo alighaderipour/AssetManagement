@@ -3,11 +3,14 @@
     <!-- Success & Error Messages -->
     <div v-if="successMessage" class="success-msg">{{ successMessage }}</div>
     <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
+
+    <!-- Asset Management Header -->
     <div class="assets-header">
       <router-link to="/assets/add" class="add-btn">اضافه کردن کالای جدید</router-link>
       <h1>مدیریت کالاها</h1>
     </div>
 
+    <!-- Filters -->
     <div class="filters">
       <div class="filter-group">
         <input
@@ -35,6 +38,7 @@
       </div>
     </div>
 
+    <!-- Assets Grid -->
     <div v-if="loading" class="loading">Loading assets...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else class="assets-grid">
@@ -45,68 +49,63 @@
         @click="viewAsset(asset.id)"
       >
         <div class="asset-info">
-         <div class="asset-header">
-      <h3 class="asset-name">{{ asset.name }}</h3>
-      <span class="asset-status" :class="asset.status">
-        {{ getStatusLabel(asset.status) }}
-      </span>
-    </div>
-
-    <div class="asset-details">
-      <div class="detail-item">
-        <span class="detail-icon">🏷️</span>
-        <span class="detail-label">کد کالا:</span>
-        <span class="asset-code">{{ asset.asset_code }}</span>
-      </div>
-
-      <div class="detail-item">
-        <span class="detail-icon">📦</span>
-        <span class="detail-label">دسته‌بندی:</span>
-        <span class="detail-value">{{ asset.category_name }}</span>
-      </div>
-
-      <div class="detail-item" v-if="asset.current_department_name">
-        <span class="detail-icon">🏢</span>
-        <span class="detail-label">بخش فعلی:</span>
-        <span class="detail-value department-info">
-          {{ asset.current_department_name }}
-          <span class="department-code">{{ asset.current_department_code }}</span>
-        </span>
-      </div>
-
-      <div class="detail-item cost-item">
-        <span class="detail-icon">💰</span>
-        <span class="detail-label">جمع هزینه انتقال:</span>
-        <span class="cost-value">
-          {{ asset.total_transfer_cost ? Number(asset.total_transfer_cost).toLocaleString() : '۰' }}
-          <span class="currency">تومان</span>
-        </span>
-      </div>
-    </div>
+          <div class="asset-header">
+            <h3 class="asset-name">{{ asset.name }}</h3>
+            <span class="asset-status" :class="asset.status">
+              {{ getStatusLabel(asset.status) }}
+            </span>
+          </div>
+          <div class="asset-details">
+            <div class="detail-item">
+              <span class="detail-icon">🏷️</span>
+              <span class="detail-label">کد کالا:</span>
+              <span class="asset-code">{{ asset.asset_code }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">📦</span>
+              <span class="detail-label">دسته‌بندی:</span>
+              <span class="detail-value">{{ asset.category_name }}</span>
+            </div>
+            <div class="detail-item" v-if="asset.current_department_name">
+              <span class="detail-icon">🏢</span>
+              <span class="detail-label">بخش فعلی:</span>
+              <span class="detail-value department-info">
+                {{ asset.current_department_name }}
+                <span class="department-code">{{ asset.current_department_code }}</span>
+              </span>
+            </div>
+            <div class="detail-item cost-item">
+              <span class="detail-icon">💰</span>
+              <span class="detail-label">جمع هزینه انتقال:</span>
+              <span class="cost-value">
+                {{ asset.total_transfer_cost ? Number(asset.total_transfer_cost).toLocaleString() : '۰' }}
+                <span class="currency">تومان</span>
+              </span>
+            </div>
+          </div>
         </div>
         <div class="asset-actions">
-          <button @click.stop="transferAsset(asset)" class="transfer-btn">
-            انتقال
-          </button>
+          <button @click.stop="transferAsset(asset)" class="transfer-btn">انتقال</button>
         </div>
       </div>
     </div>
 
+    <!-- Pagination -->
     <div v-if="totalPages > 1" class="pagination-controls">
       <button @click="changePage(page - 1)" :disabled="page === 1">«</button>
-      <span>Page {{ page }} of {{ totalPages }}</span>
+      <span>صفحه {{ page }} از {{ totalPages }}</span>
       <button @click="changePage(page + 1)" :disabled="page === totalPages">»</button>
     </div>
 
     <!-- Transfer Modal -->
-    <div v-if="showTransferModal" class="modal-overlay" @click="closeTransferModal">
-      <div class="modal" @click.stop>
-        <h2>Transfer "{{ selectedAsset?.name }}"</h2>
+    <div v-if="showTransferModal" class="modal-overlay" @click.self="closeTransferModal">
+      <div class="modal">
+        <h2>انتقال "{{ selectedAsset?.name }}"</h2>
 
         <div class="form-group">
-          <label for="to_department">Transfer To Department</label>
+          <label for="to_department">بخش مقصد</label>
           <select v-model="transferForm.to_department" id="to_department" required>
-            <option disabled value="">Select Department</option>
+            <option disabled value="">انتخاب بخش</option>
             <option v-for="dept in departments" :key="dept.id" :value="dept.id">
               {{ dept.name }}
             </option>
@@ -114,37 +113,43 @@
         </div>
 
         <div class="form-group">
-          <label for="reason">Reason</label>
+          <label for="reason">دلیل انتقال</label>
           <input type="text" id="reason" v-model="transferForm.reason" />
         </div>
+
         <div class="form-group">
-          <label for="notes">Notes</label>
+          <label for="notes">یادداشت</label>
           <textarea id="notes" v-model="transferForm.notes"></textarea>
         </div>
+
         <div class="form-group">
-          <label for="image">Invoice Image</label>
+          <label for="price">قیمت <span v-if="selectedAsset?.current_department_type === 'maintenance'" style="color:red;">*</span></label>
+          <input
+            type="number"
+            id="price"
+            v-model="transferForm.price"
+            min="0"
+            step="100000"
+            placeholder="قیمت انتقال"
+          />
+          <div v-if="fieldErrors.price" class="field-error">{{ fieldErrors.price }}</div>
+        </div>
+
+        <div class="form-group">
+          <label for="image">تصویر فاکتور <span v-if="selectedAsset?.current_department_type === 'maintenance'" style="color:red;">*</span></label>
           <input
             type="file"
             id="image"
             accept="image/*"
             @change="onImageChange"
           />
+          <div v-if="fieldErrors.image" class="field-error">{{ fieldErrors.image }}</div>
         </div>
-        <div class="form-group">
-          <label for="price">Price</label>
-          <input
-            type="number"
-            id="price"
-            v-model="transferForm.price"
-            min="0"
-            step="any"
-            placeholder="Enter price"
-          />
-        </div>
+
         <div class="modal-actions">
-          <button @click="closeTransferModal">Cancel</button>
-          <button :disabled="transferring" @click="submitTransfer">
-            {{ transferring ? 'Transferring...' : 'Submit Transfer' }}
+          <button type="button" @click="closeTransferModal">لغو</button>
+          <button type="button" class="submit-btn" :disabled="transferring" @click="submitTransfer">
+            {{ transferring ? 'در حال انتقال...' : 'ثبت انتقال' }}
           </button>
         </div>
       </div>
@@ -157,11 +162,9 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAssetsStore } from '@/stores/assets'
 
-// STATE
 const router = useRouter()
 const assetsStore = useAssetsStore()
 
-// PAGINATION STATE
 const page = ref(1)
 const pageSize = 6
 const count = computed(() => assetsStore.count ?? 0)
@@ -172,58 +175,42 @@ const loading = computed(() => assetsStore.loading)
 const error = computed(() => assetsStore.error)
 const totalPages = computed(() => Math.max(1, Math.ceil(count.value / pageSize)))
 
-// FILTER STATE
-const filters = ref({
-  search: '',
-  department: '',
-  category: ''
-})
-
-// MODAL/TRANSFER STATE
+const filters = ref({ search: '', department: '', category: '' })
 const showTransferModal = ref(false)
 const selectedAsset = ref(null)
-const transferForm = ref({
-  to_department: "",
-  reason: "",
-  notes: "",
-  price: "",
-  image: null
-})
+const transferForm = ref({ to_department: '', reason: '', notes: '', price: '', image: null })
 const transferring = ref(false)
+const fieldErrors = ref({ price: '', image: '' })
+const successMessage = ref('')
+const errorMessage = ref('')
 
-// Success & Error Messages
-const successMessage = ref("")
-const errorMessage = ref("")
-function showSuccessMessage(msg) {
+const showSuccessMessage = (msg) => {
   successMessage.value = msg
-  setTimeout(() => (successMessage.value = ""), 3000)
+  setTimeout(() => (successMessage.value = ''), 3000)
 }
-function showErrorMessage(msg) {
+const showErrorMessage = (msg) => {
   errorMessage.value = msg
-  setTimeout(() => (errorMessage.value = ""), 3000)
+  setTimeout(() => (errorMessage.value = ''), 3000)
 }
 
-// Debounced search
 let searchTimeout = null
 const debouncedSearch = () => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => applyFilters(), 300)
 }
-
 const applyFilters = () => {
   page.value = 1
   fetchPage()
 }
 const getStatusLabel = (status) => {
-  const statusLabels = {
-    'active': 'فعال',
-    'inactive': 'غیرفعال',
-    'under_maintenance': 'تعمیر',
-    'disposed': 'خارج از خدمت'
+  const labels = {
+    active: 'فعال',
+    inactive: 'غیرفعال',
+    under_maintenance: 'تعمیر',
+    disposed: 'خارج از خدمت'
   }
-  return statusLabels[status] || status
-  }
-// Fetch assets for the current page and filters
+  return labels[status] || status
+}
 const fetchPage = async () => {
   await assetsStore.fetchAssets({
     search: filters.value.search,
@@ -233,72 +220,63 @@ const fetchPage = async () => {
     page_size: pageSize,
   })
 }
-
-// Pagination change handler
 const changePage = (newPage) => {
   if (newPage < 1 || newPage > totalPages.value) return
   page.value = newPage
   fetchPage()
 }
-
-// Card action handlers
-const viewAsset = (id) => {
-  router.push(`/assets/${id}/edit`)
-}
+const viewAsset = (id) => router.push(`/assets/${id}/edit`)
 const transferAsset = (asset) => {
   selectedAsset.value = asset
-  transferForm.value = {
-    to_department: "",
-    reason: "",
-    notes: "",
-    price: "",
-    image: null
-  }
+  transferForm.value = { to_department: '', reason: '', notes: '', price: '', image: null }
+  fieldErrors.value = { price: '', image: '' }
   showTransferModal.value = true
 }
 const closeTransferModal = () => {
   showTransferModal.value = false
   selectedAsset.value = null
 }
-function onImageChange(event) {
+const onImageChange = (event) => {
   transferForm.value.image = event.target.files[0] || null
 }
 
-// Main transfer handler with department validation!
 const submitTransfer = async () => {
-  // Validate department selection
   if (!transferForm.value.to_department) {
-    showErrorMessage("You must select a department for transfer.")
+    showErrorMessage('بخش مقصد را انتخاب کنید.')
     return
+  }
+
+  const isMaintenanceDept = selectedAsset.value?.current_department_type === 'maintenance'
+  fieldErrors.value = { price: '', image: '' }
+  if (isMaintenanceDept) {
+    let hasError = false
+    if (!transferForm.value.price || transferForm.value.price <= 0) {
+      fieldErrors.value.price = 'وارد کردن مبلغ انتقال الزامی است.'
+      hasError = true
+    }
+    if (!transferForm.value.image) {
+      fieldErrors.value.image = 'وارد کردن تصویر فاکتور الزامی است.'
+      hasError = true
+    }
+    if (hasError) return
   }
 
   transferring.value = true
   try {
     const formData = new FormData()
-    // forcibly cast department to string or number ONLY if your backend expects integer (depends on model)
-    formData.append("department", transferForm.value.to_department)
-    formData.append("notes", transferForm.value.notes || "")
-    formData.append("price", transferForm.value.price || "")
-    if (transferForm.value.image) {
-      formData.append("image", transferForm.value.image)
-    }
-    // Optionally add reason if your backend expects it:
-    if (transferForm.value.reason) {
-      formData.append("reason", transferForm.value.reason)
-    }
-    // Debug output: see what is being sent
-    console.log("Sending form data:");
-    for (const pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
-    }
+    formData.append('department', transferForm.value.to_department)
+    formData.append('notes', transferForm.value.notes || '')
+    formData.append('price', transferForm.value.price || '')
+    if (transferForm.value.image) formData.append('image', transferForm.value.image)
+    if (transferForm.value.reason) formData.append('reason', transferForm.value.reason)
 
     await assetsStore.transferAssetWithFormData(selectedAsset.value.id, formData)
     closeTransferModal()
-    showSuccessMessage("Transfer successful!")
+    showSuccessMessage('انتقال با موفقیت انجام شد')
     fetchPage()
     if (assetsStore.fetchTransfers) await assetsStore.fetchTransfers()
   } catch (err) {
-    showErrorMessage("Transfer failed. " + (err?.message || "Please try again."))
+    showErrorMessage('خطا در انتقال. ' + (err?.message || 'لطفاً دوباره تلاش کنید.'))
   } finally {
     transferring.value = false
   }
@@ -312,8 +290,12 @@ onMounted(async () => {
 </script>
 
 
-
 <style scoped>
+.field-error {
+  color: #e53e3e;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
 .assets {
   padding: 2rem;
   max-width: 1200px;

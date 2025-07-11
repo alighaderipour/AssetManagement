@@ -25,8 +25,13 @@ class User(AbstractUser):
 
 
 class Department(models.Model):
+    DEPARTMENT_TYPES = [
+        ('hospital', 'Hospital Department'),
+        ('maintenance', 'Maintenance Department'),
+    ]
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=10, unique=True)
+    type = models.CharField(max_length=20, choices=DEPARTMENT_TYPES, default='hospital')
     manager = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,

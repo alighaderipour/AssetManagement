@@ -40,7 +40,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = [
-            'id', 'name', 'code', 'manager',
+            'id', 'name', 'code', 'manager','type',
             'manager_name', 'description', 'created_at'
         ]
 
@@ -65,6 +65,9 @@ class AssetSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(
         source='created_by.get_full_name', read_only=True
     )
+    current_department_type = serializers.CharField(
+        source='current_department.type', read_only=True
+    )
 
     class Meta:
         model = Asset
@@ -76,7 +79,7 @@ class AssetSerializer(serializers.ModelSerializer):
             'image', 'category_name', 'department_name',
             'current_department_name', 'created_by',
             'created_by_name', 'created_at', 'updated_at',
-            'total_transfer_cost'
+            'total_transfer_cost', 'current_department_type',
 
         ]
         read_only_fields = ['code', 'created_by', 'created_at', 'updated_at']

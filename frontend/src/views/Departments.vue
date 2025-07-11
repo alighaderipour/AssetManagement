@@ -6,6 +6,11 @@
       <input v-model="form.name" required placeholder="Name" class="input" />
       <input v-model="form.code" required placeholder="Code (unique)" class="input" />
       <input v-model="form.description" placeholder="Description" class="input" />
+      <select v-model="form.type" required class="input">
+  <option value="hospital">Hospital Department</option>
+  <option value="maintenance">Maintenance Department</option>
+</select>
+
       <button type="submit" class="btn primary">
         {{ form.id ? "Update" : "Add" }}
       </button>
@@ -24,7 +29,10 @@
           <th>Name</th>
           <th>Code</th>
           <th>Description</th>
+           <th>Type</th>
           <th>Actions</th>
+
+
         </tr>
       </thead>
       <tbody>
@@ -32,6 +40,8 @@
           <td>{{ dept.name }}</td>
           <td>{{ dept.code }}</td>
           <td>{{ dept.description }}</td>
+          <td>{{ dept.type === 'hospital' ? 'Hospital' : 'Maintenance' }}</td>
+
           <td>
             <button @click="edit(dept)" class="btn small">Edit</button>
             <button @click="remove(dept.id)" class="btn danger small">Delete</button>
@@ -49,7 +59,8 @@ import { apiRequest } from '@/stores/assets'
 
 const authStore = useAuthStore()
 const departments = ref([])
-const form = ref({ name: '', code: '', description: '', id: null })
+
+const form = ref({ name: '', code: '', type: 'hospital', description: '', id: null })
 
 const fetchDepartments = async () => {
   try {
