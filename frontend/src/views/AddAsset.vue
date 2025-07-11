@@ -65,9 +65,17 @@
           <input id="purchase_price" v-model="form.purchase_price" type="number"  step="100000" required />
         </div>
         <div class="form-group">
-          <label for="current_value">تعداد</label>
-          <input id="current_value" v-model="form.current_value" type="number" step="1" />
-        </div>
+  <label for="current_value">تعداد</label>
+  <input
+    id="current_value"
+    v-model="form.current_value"
+    type="number"
+    step="1"
+
+    disabled
+  />
+</div>
+
       </div>
 
       <!-- شماره سریال، کد، برند -->
@@ -126,7 +134,7 @@ const form = ref({
   status: 'active',
   purchase_date: '',
   purchase_price: '',
-  current_value: '',
+  current_value: 1,
   serial_number: '',
   asset_code: '',
   brand: '',

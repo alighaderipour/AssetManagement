@@ -13,7 +13,7 @@
           />
         </RouterLink>
         <ul class="nav-links">
-          <li><RouterLink to="/" exact-active-class="active">صفحه اصلی</RouterLink></li>
+          <li><RouterLink to="/" exact-active-class="active">داشبورد</RouterLink></li>
           <li><RouterLink to="/assets" exact-active-class="active">کالاها</RouterLink></li>
           <li><RouterLink to="/department-assets" exact-active-class="active">بخش ها و کالاها</RouterLink></li>
           <li><RouterLink to="/transfers" exact-active-class="active">انتقالات</RouterLink></li>

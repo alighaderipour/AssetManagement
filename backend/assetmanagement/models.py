@@ -98,7 +98,7 @@ class Asset(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     purchase_date = models.DateField()
     purchase_price = models.DecimalField(max_digits=12, decimal_places=2)
-    current_value = models.IntegerField()
+    current_value = models.IntegerField(default=1, editable=False)
     serial_number = models.CharField(max_length=100, blank=True)
     asset_code = models.CharField(max_length=100, blank=True)
     brand = models.CharField(max_length=100, blank=True)

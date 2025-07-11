@@ -53,6 +53,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class AssetSerializer(serializers.ModelSerializer):
     total_transfer_cost = serializers.SerializerMethodField()
+    current_value = serializers.IntegerField(read_only=True)
     category_name = serializers.CharField(
         source='category.name', read_only=True
     )

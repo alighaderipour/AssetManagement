@@ -330,20 +330,18 @@ onMounted(async () => {
         </div>
 
         <div class="form-group">
-          <label for="current_value" class="form-label">
-            <span class="label-icon">💎</span>
-           تعداد
-          </label>
-          <input
-            id="current_value"
-            v-model="form.current_value"
-            type="number"
-            step="0.01"
-            :disabled="!isEditMode"
-            class="form-input"
-            placeholder="مثال: 800000"
-          />
-        </div>
+  <label for="current_value">تعداد</label>
+  <input
+    id="current_value"
+    type="number"
+    :value="form.current_value"
+    readonly
+    tabindex="-1"
+    class="form-input readonly-field"
+    style="pointer-events:none; background:#f8fafc; color:#6c757d;"
+  />
+</div>
+
       </div>
 
       <!-- اطلاعات تکنیکی -->
