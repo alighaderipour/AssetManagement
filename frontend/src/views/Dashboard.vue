@@ -8,7 +8,7 @@
         <router-link v-if="authStore.isAdmin" to="/admin" class="action-btn admin-btn">پنل ادمین</router-link>
       </div>
 
-      <!-- ۲. عنوان وسط/راست (بسته به نمایش) -->
+      <!-- ۲. عنوان وسط/راست -->
       <div class="header-right">
         <h1>داشبورد مديريت كالاها</h1>
       </div>
@@ -33,11 +33,9 @@
         <p class="stat-number">{{ stats.active_assets }}</p>
       </div>
       <div class="stat-card clickable" @click="goToDepartmentAssets">
-  <h3>
-بخش ها و کالاها</h3>
-  <p class="stat-number">{{ stats.total_departments }}</p>
-</div>
-
+        <h3>بخش ها و کالاها</h3>
+        <p class="stat-number">{{ stats.total_departments }}</p>
+      </div>
       <div class="stat-card clickable" @click="goToCategories">
         <h3>دسته‌بندی‌ها</h3>
         <p class="stat-number">{{ stats.total_categories || 0 }}</p>
@@ -46,23 +44,35 @@
 
     <RecentTransfers :max-items="5" />
 
-    <div class="department-chart">
-      <h3>توزیع کالاها بر اساس بخش</h3>
-      <div v-if="Object.keys(stats.assets_by_department).length === 0" class="no-data">
-        اطلاعاتی برای بخش‌ها موجود نیست
-      </div>
-      <div v-else class="chart-container">
-        <div
-          v-for="(count, dept) in stats.assets_by_department"
-          :key="dept"
-          class="chart-bar"
-        >
-          <div class="bar-label">{{ dept }}</div>
-          <div class="bar" :style="{ width: `${maxDeptCount > 0 ? (count / maxDeptCount) * 100 : 0}%` }">
-            {{ count }}
+    <!-- بخش مدرن نمودار توزیع بخش‌ها -->
+    <div class="modern-department-chart" v-if="Object.keys(stats.assets_by_department).length">
+      <h3>
+        <span class="chart-emoji">📊</span>
+        توزیع کالاها بر اساس بخش
+      </h3>
+      <div class="modern-chart-container">
+        <div v-for="(count, dept) in stats.assets_by_department" :key="dept" class="modern-chart-bar">
+          <span class="modern-bar-label">
+            <span class="dept-emoji">🏢</span>
+            {{ dept }}
+          </span>
+          <div
+            class="modern-bar-bg"
+            :title="`کل کالاها در ${dept}: ${count}`"
+          >
+            <div
+              class="modern-bar-fill"
+              :style="{ width: (maxDeptCount ? (count / maxDeptCount) * 100 : 0) + '%'}"
+            >
+              <span class="modern-bar-value">{{ count }}</span>
+            </div>
           </div>
+          <span class="modern-bar-percent">{{ ((count / maxDeptCount) * 100).toFixed(0) }}٪</span>
         </div>
       </div>
+    </div>
+    <div v-else class="no-data modern-no-data">
+      اطلاعاتی برای بخش‌ها موجود نیست
     </div>
   </div>
 </template>
@@ -88,6 +98,7 @@ const maxDeptCount = computed(() => {
   const values = Object.values(stats.value.assets_by_department)
   return values.length > 0 ? Math.max(...values) : 0
 })
+
 const goToDepartmentAssets = () => {
   router.push('/department-assets')
 }
@@ -115,9 +126,6 @@ const logout = async () => {
   router.push('/login')
 }
 
-const goToDepartments = () => {
-  router.push('/departments')
-}
 const goToCategories = () => {
   router.push('/categories')
 }
@@ -138,7 +146,6 @@ onMounted(() => {
   font-family: "Vazirmatn", Tahoma, sans-serif;
 }
 
-/* هدر دکمه ها سمت راست، greeting سمت چپ */
 .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -159,10 +166,9 @@ onMounted(() => {
   gap: 1rem;
   flex-direction: row-reverse;
   align-items: center;
-  margin-left: 2rem; /* فاصله از بخش وسط */
+  margin-left: 2rem;
 }
 
-/* سایر استایل‌ها همون قبلی */
 .header-right h1 {
   margin: 0;
   color: #1e293b;
@@ -259,49 +265,117 @@ onMounted(() => {
   background: #319795;
 }
 
-.department-chart {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+/* ---- مدرن نمودار دپارتمان ---- */
+.modern-department-chart {
+  background: #fff;
+  padding: 2.2rem 1.5rem 2.1rem 1.5rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(44, 62, 80, 0.10);
+  max-width: 650px;
+  margin: 2.5rem auto 2rem auto;
+  direction: rtl;
+  font-family: 'Vazirmatn', Tahoma, sans-serif;
+  animation: fadeIn 0.8s;
 }
 
-.chart-bar {
+.modern-department-chart h3 {
+  font-size: 1.33rem;
+  margin-bottom: 1.5rem;
+  color: #2d3748;
+  font-weight: 800;
+  letter-spacing: .01em;
   display: flex;
   align-items: center;
-  margin-bottom: 0.75rem;
-  flex-direction: row-reverse;
+  gap: 0.4em;
 }
 
-.bar-label {
-  width: 180px;
-  text-align: left;
-  margin-left: 1rem;
-  font-size: 0.95rem;
-  color: #374151;
-  direction: rtl;
+.chart-emoji {
+  font-size: 1.38rem;
+  margin-left: 6px;
 }
 
-.bar {
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  min-width: 40px;
+.modern-chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.modern-chart-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  font-size: 1.07rem;
+}
+
+.modern-bar-label {
+  min-width: 72px;
+  font-weight: 500;
+  color: #323259;
+  display: flex;
+  align-items: center;
+  gap: 0.1em;
+}
+.dept-emoji {
+  font-size: 1.1em;
+  margin-left: 2px;
+}
+.modern-bar-bg {
+  flex: 1;
+  height: 34px;
+  background: #f2f6fa;
+  border-radius: 9px;
+  position: relative;
+  overflow: hidden;
+  margin: 0 0.3em 0 0.2em;
+}
+
+.modern-bar-fill {
+  position: absolute;
+  left: 0; top: 0;
+  height: 100%;
+  border-radius: 9px;
+  background: linear-gradient(90deg, #38b2ac 10%, #7eaaff 83%, #805ad5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 1.08em;
+  color: #fff;
+  font-weight: bold;
+  padding: 0 18px 0 8px;
+  min-width: 37px;
+  transition: width .7s cubic-bezier(.43,1.16,.61,.91);
+  box-shadow: 0 1px 8px rgba(128,90,213,0.09);
+}
+
+.modern-bar-value {
+  z-index: 2;
+  font-family: inherit;
+  font-size: 1.04rem;
+}
+
+.modern-bar-percent {
+  min-width: 35px;
   text-align: center;
+  color: #1bd0b9;
+  font-size: 1.01rem;
   font-weight: 600;
-  transition: all 0.2s ease;
-}
-.bar:hover {
-  transform: scale(1.02);
+  letter-spacing: 0.1em;
 }
 
-.no-data {
+.modern-no-data {
+  background: #f8fafc;
+  color: #999;
+  border-radius: 12px;
+  padding: 2.2rem 1.1rem 1.8rem;
+  margin: 0 auto 2rem auto;
   text-align: center;
-  color: #64748b;
-  padding: 2rem;
+  font-size: 1.13rem;
+  width: 100%;
+  max-width: 580px;
   font-style: italic;
+  font-family: inherit;
 }
+
 .farsi-greeting {
   direction: rtl;
   font-weight: 600;
@@ -316,7 +390,18 @@ onMounted(() => {
   font-family: "Vazirmatn", Tahoma, sans-serif;
 }
 
-/* ریسپانسیو */
+@media (max-width: 900px) {
+  .modern-department-chart { padding: 1rem 0.1rem; max-width: 99vw;}
+  .modern-bar-label {min-width:56px;}
+}
+
+/* انیمیشن fade in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(24px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+/* سایر ریسپانسیو */
 @media (max-width: 750px) {
   .dashboard-header,
   .dashboard-actions {
@@ -333,11 +418,6 @@ onMounted(() => {
   }
   .stats-grid {
     grid-template-columns: 1fr;
-  }
-  .bar-label {
-    width: unset;
-    margin-left: 0.5rem;
-    font-size: 0.95rem;
   }
 }
 </style>
