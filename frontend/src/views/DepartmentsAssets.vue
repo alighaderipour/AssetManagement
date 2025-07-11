@@ -1,11 +1,11 @@
 <template>
   <div class="dep-assets-page">
-    <h2>دارایی هر بخش</h2>
+    <h2>📊 دارایی‌های هر بخش</h2>
 
     <div class="search-bar-row">
       <input
         v-model="search"
-        placeholder="جستجوی بخش..."
+        placeholder="🔍 جستجوی بخش..."
         @input="fetchData"
         class="search-input"
       />
@@ -17,7 +17,7 @@
       class="dep-block"
     >
       <div class="dep-header">
-        <h3>{{ dept.department_name }}</h3>
+        <h3>🏢 {{ dept.department_name }}</h3>
       </div>
 
       <div class="assets-table-wrapper">
@@ -38,7 +38,7 @@
             >
               <td class="asset-code">{{ asset.code }}</td>
               <td class="asset-name">{{ asset.name }}</td>
-              <td class="asset-value">{{ asset.current_value }}</td>
+              <td class="asset-value">📦 {{ asset.current_value }}</td>
             </tr>
           </tbody>
         </table>
@@ -48,39 +48,34 @@
         <button
           @click="prevPage(dept.department_id)"
           :disabled="currentPages[dept.department_id] === 1"
-        >
-          قبلی
-        </button>
+        >⏪ قبلی</button>
+
         <span>
-          صفحه {{ currentPages[dept.department_id] || 1 }} از
-          {{ Math.ceil(dept.assets.length / 5) }}
+          صفحه <strong>{{ currentPages[dept.department_id] || 1 }}</strong> از
+          <strong>{{ Math.ceil(dept.assets.length / 5) }}</strong>
         </span>
+
         <button
           @click="nextPage(dept.department_id, dept.assets)"
-          :disabled="
-            currentPages[dept.department_id] >=
-            Math.ceil(dept.assets.length / 5)
-          "
-        >
-          بعدی
-        </button>
+          :disabled="currentPages[dept.department_id] >= Math.ceil(dept.assets.length / 5)"
+        >بعدی ⏩</button>
       </div>
     </div>
 
-    <!-- Pagination for departments -->
     <div v-if="totalDeptPages > 1" class="department-pagination">
-      <button @click="prevDeptPage" :disabled="deptPage === 1">قبلی</button>
+      <button @click="prevDeptPage" :disabled="deptPage === 1">◀ قبلی</button>
       <span>صفحه {{ deptPage }} از {{ totalDeptPages }}</span>
       <button @click="nextDeptPage" :disabled="deptPage >= totalDeptPages">
-        بعدی
+        بعدی ▶
       </button>
     </div>
 
     <div v-if="departmentsAssets.length === 0" class="not-found">
-      <span>نتیجه‌ای یافت نشد</span>
+      <span>❌ نتیجه‌ای یافت نشد</span>
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, computed } from 'vue'
@@ -168,165 +163,166 @@ fetchData()
 </script>
 
 <style scoped>
-@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn-font@v33.003/dist/font-face.css');
+
 
 .dep-assets-page {
   direction: rtl;
   text-align: right;
   font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
-  padding: 2.5rem 1rem;
-  max-width: 700px;
+  padding: 2.5rem 2rem;
+  max-width: 1200px;
   margin: 0 auto;
-  background: #f7f8fa;
-  border-radius: 24px;
+  background: #f9fbff;
+  border-radius: 18px;
   min-height: 90vh;
-  box-shadow: 0 4px 32px -10px rgba(71, 125, 243, 0.08);
+  box-shadow: 0 6px 32px -10px rgba(100, 120, 200, 0.1);
 }
 
 h2 {
   margin-bottom: 2.5rem;
-  color: #283593;
-  font-weight: 800;
-  font-size: 2.1rem;
-  text-shadow: 0 1px 8px #dde2fa49;
-  letter-spacing: -0.5px;
+  color: #2e3a59;
+  font-weight: 900;
+  font-size: 2.2rem;
+  text-shadow: 0 1px 6px #dde2fa4a;
+  letter-spacing: -0.4px;
 }
 
 .search-bar-row {
   display: flex;
-  margin-bottom: 2.5rem;
   justify-content: flex-end;
+  margin-bottom: 2rem;
 }
 
 .search-input {
-  width: 330px;
+  width: 400px;
   max-width: 100%;
   font-size: 1rem;
-  padding: 0.85rem 1.3rem;
-  border-radius: 14px;
-  border: 1.5px solid #cad2ef;
+  padding: 0.9rem 1.3rem;
+  border-radius: 12px;
+  border: 1.5px solid #b4c0e0;
   background: #fff;
   outline: none;
   transition: border 0.2s;
-  box-shadow: 0 3px 12px -10px #27399647;
+  box-shadow: 0 2px 10px -6px #2d3a6747;
 }
+
 .search-input:focus {
-  border-color: #577fff;
-  background: #eef3fd;
+  border-color: #3e6cff;
+  background: #eef4ff;
 }
 
 .dep-block {
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1.5px 10px -6px #90a2c040;
-  padding: 1.5rem 1.2rem 0.7rem 1.2rem;
-  margin-bottom: 2rem;
-  border-right: 5px solid #728fe6;
+  border-radius: 14px;
+  box-shadow: 0 3px 14px -8px #b8c4dfb3;
+  padding: 1.6rem 1.5rem;
+  margin-bottom: 2.5rem;
+  border-right: 6px solid #547bff;
 }
 
 .dep-header {
-  margin-bottom: 0.8rem;
+  margin-bottom: 1rem;
   display: flex;
   align-items: center;
-  gap: 8px;
-  border-bottom: 1.5px dashed #dde2fa;
-  padding-bottom: 8px;
+  gap: 10px;
+  border-bottom: 1.5px dashed #d0d9fa;
+  padding-bottom: 10px;
 }
+
 .dep-header h3 {
-  color: #283593;
-  font-weight: 500;
-  font-size: 1.25rem;
+  color: #2e3a59;
+  font-weight: 700;
+  font-size: 1.3rem;
   margin: 0;
 }
+
 .assets-table-wrapper {
   overflow-x: auto;
 }
+
 .assets-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   background: transparent;
-  margin-top: 0.3rem;
-  font-size: 1.04rem;
+  font-size: 1.05rem;
+  margin-top: 0.6rem;
 }
 
 .assets-table th,
 .assets-table td {
-  padding: 10px 12px;
+  padding: 12px 14px;
   text-align: right;
-  background: none;
 }
+
 .assets-table th {
-  background: #e7ebfc;
-  color: #2d386e;
-  font-weight: 700;
-  border-bottom: 2px solid #d1d8ee;
-  font-size: 1.03rem;
+  background: #e4eaff;
+  color: #24325c;
+  font-weight: 800;
+  border-bottom: 2px solid #c5cdee;
 }
 
 .assets-table td {
-  border-bottom: 1px solid #f0f3f9;
-  color: #333f54;
+  border-bottom: 1px solid #edf0f7;
+  color: #2e3a59;
   vertical-align: middle;
 }
 
 .asset-code {
   font-family: 'Vazirmatn', monospace, Tahoma;
-  background: #eff4ff;
+  background: #eef4ff;
   border-radius: 6px;
-  font-size: 0.95rem;
-  color: #5761af;
-  padding: 0.2em 0.85em 0.1em 0.85em;
-  border: 1px solid #e2e8f0;
-  letter-spacing: 0.2px;
+  font-size: 0.93rem;
+  color: #4255a4;
+  padding: 0.25em 0.9em;
+  border: 1px solid #d9e3f7;
 }
 
 .asset-name {
   font-weight: 600;
-  color: #373066;
+  color: #2a2e6a;
 }
+
 .asset-value {
-  color: #217971;
-  font-weight: 500;
+  color: #197b73;
+  font-weight: 600;
 }
 
 .clickable-row {
   cursor: pointer;
   user-select: none;
-  transition: background 0.16s, box-shadow 0.16s;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .clickable-row:hover {
-  background: #f2f6fd;
-  box-shadow: 0 2px 6px -7px #c5cded;
+  background: #f1f5ff;
+  box-shadow: 0 2px 6px -6px #bcc5e5;
 }
 
 .not-found {
   margin-top: 3rem;
-  color: #af2836;
+  color: #b21e3b;
   text-align: center;
-  padding: 1.5rem;
-  background: #faecec;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px -7px #e0b4b4;
+  padding: 1.7rem;
+  background: #ffecec;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px -7px #e6b6b6;
   font-size: 1.1rem;
 }
 
-/* Pagination for assets inside department */
 .pagination-buttons {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   margin-top: 1rem;
-  gap: 0.7rem;
+  gap: 0.8rem;
 }
 
 .pagination-buttons button {
-  background: #577fff;
+  background: #3e6cff;
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 0.4rem 0.9rem;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
   font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s;
@@ -339,10 +335,9 @@ h2 {
 
 .pagination-buttons span {
   font-size: 0.95rem;
-  color: #444f77;
+  color: #2e3a59;
 }
 
-/* Pagination for departments */
 .department-pagination {
   display: flex;
   justify-content: center;
@@ -352,35 +347,39 @@ h2 {
 }
 
 .department-pagination button {
-  background: #3949ab;
+  background: #2f3caa;
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  padding: 0.55rem 1.2rem;
   font-size: 1rem;
   cursor: pointer;
 }
 
 .department-pagination button:disabled {
-  background: #ccc;
+  background: #c8c8c8;
   cursor: not-allowed;
 }
 
 .department-pagination span {
-  color: #3b3b3b;
+  color: #2d2d2d;
   font-weight: 500;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 768px) {
   .dep-assets-page {
-    padding: 1rem 0.3rem;
+    padding: 1.2rem 1rem;
     border-radius: 0;
   }
 
   .assets-table th,
   .assets-table td {
-    padding: 7px 5px;
-    font-size: 0.96rem;
+    padding: 8px 6px;
+    font-size: 0.95rem;
+  }
+
+  .search-input {
+    width: 100%;
   }
 }
 
