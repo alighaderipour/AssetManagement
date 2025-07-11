@@ -218,8 +218,8 @@ const getStatusLabel = (status) => {
   const statusLabels = {
     'active': 'فعال',
     'inactive': 'غیرفعال',
-    'maintenance': 'تعمیر',
-    'retired': 'خارج از خدمت'
+    'under_maintenance': 'تعمیر',
+    'disposed': 'خارج از خدمت'
   }
   return statusLabels[status] || status
   }

@@ -4,7 +4,23 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAssetsStore } from '@/stores/assets'
 import { useAuthStore } from '@/stores/auth'
-import { toJalali } from '@/utils/jalali'
+import jalaali from 'jalaali-js'
+
+// تابع تبدیل تاریخ میلادی به شمسی
+const toJalali = (dateString) => {
+  if (!dateString) return 'تاریخ نامعتبر'
+
+  try {
+    const date = new Date(dateString)
+    const j = jalaali.toJalaali(date.getFullYear(), date.getMonth() + 1, date.getDate())
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${j.jy}/${j.jm.toString().padStart(2, '0')}/${j.jd.toString().padStart(2, '0')} - ${hours}:${minutes}`
+  } catch (error) {
+    console.error('خطا در تبدیل تاریخ:', error)
+    return 'تاریخ نامعتبر'
+  }
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -35,6 +51,17 @@ const isEditMode = computed(() => route.path.includes('/edit'))
 const jalaliPurchaseDate = computed(() => toJalali(form.value.purchase_date))
 const jalaliCreatedAt = computed(() => toJalali(asset.value?.created_at))
 
+// تابع برچسب‌های فارسی برای وضعیت
+const getStatusLabel = (status) => {
+  const statusLabels = {
+    'active': 'فعال',
+    'inactive': 'غیرفعال',
+    'under_maintenance': 'در حال تعمیر',
+    'disposed': 'از رده خارج'
+  }
+  return statusLabels[status] || status
+}
+
 const loadAsset = async () => {
   loading.value = true
   try {
@@ -55,8 +82,8 @@ const loadAsset = async () => {
       model: asset.value.model || ''
     }
   } catch (error) {
-    console.error('Error loading asset:', error)
-    alert('Error loading asset details')
+    console.error('خطا در بارگذاری دارایی:', error)
+    alert('خطا در بارگذاری جزئیات دارایی')
   } finally {
     loading.value = false
   }
@@ -76,11 +103,11 @@ const submitAsset = async () => {
     if (payload.current_value) payload.current_value = parseFloat(payload.current_value)
 
     await assetsStore.updateAsset(route.params.id, payload)
-    alert('Asset updated successfully!')
+    alert('دارایی با موفقیت به‌روزرسانی شد!')
     router.push('/assets')
   } catch (error) {
-    console.error('Error updating asset:', error)
-    alert('Error updating asset: ' + (error.response?.data?.detail || error.message))
+    console.error('خطا در به‌روزرسانی دارایی:', error)
+    alert('خطا در به‌روزرسانی دارایی: ' + (error.response?.data?.detail || error.message))
   } finally {
     saving.value = false
   }
@@ -89,14 +116,14 @@ const submitAsset = async () => {
 const cancelEdit = () => router.push('/assets')
 
 const deleteAsset = async () => {
-  if (!confirm('Are you sure you want to delete this asset?')) return
+  if (!confirm('آیا مطمئن هستید که می‌خواهید این دارایی را حذف کنید؟')) return
   try {
     await assetsStore.deleteAsset(route.params.id)
-    alert('Asset deleted successfully!')
+    alert('دارایی با موفقیت حذف شد!')
     router.push('/assets')
   } catch (error) {
-    console.error('Error deleting asset:', error)
-    alert('Error deleting asset: ' + (error.response?.data?.detail || error.message))
+    console.error('خطا در حذف دارایی:', error)
+    alert('خطا در حذف دارایی: ' + (error.response?.data?.detail || error.message))
   }
 }
 
@@ -111,363 +138,678 @@ onMounted(async () => {
 
 <template>
   <div class="edit-asset">
+    <!-- Header بخش -->
     <div class="form-header">
-      <h1>{{ isEditMode ? 'Edit Asset' : 'Asset Details' }}</h1>
+      <div class="header-content">
+        <h1 class="page-title">{{ isEditMode ? 'ویرایش دارایی' : 'جزئیات دارایی' }}</h1>
+        <p class="page-subtitle">مدیریت اطلاعات دارایی سازمان</p>
+      </div>
       <div class="header-actions">
-        <router-link to="/assets" class="back-btn">← Back to Assets</router-link>
+        <router-link to="/assets" class="back-btn">
+          <span class="btn-icon">←</span>
+          بازگشت به دارایی‌ها
+        </router-link>
         <button
           v-if="!isEditMode"
           @click="router.push(`/assets/${route.params.id}/edit`)"
           class="btn btn-primary"
         >
-          Edit Asset
+          <span class="btn-icon">✏️</span>
+          ویرایش دارایی
         </button>
       </div>
     </div>
 
-    <div v-if="loading" class="loading">Loading asset details...</div>
+    <!-- Loading State -->
+    <div v-if="loading" class="loading-container">
+      <div class="spinner"></div>
+      <span>در حال بارگذاری جزئیات دارایی...</span>
+    </div>
 
+    <!-- Form -->
     <form v-else-if="asset" @submit.prevent="isEditMode ? submitAsset() : null" class="asset-form">
-      <div class="form-group">
-        <label for="code">Asset Code</label>
-        <input id="code" :value="asset.code" type="text" disabled class="readonly-field" />
-      </div>
+      <!-- کد دارایی -->
+      <div class="form-section">
+        <h3 class="section-title">اطلاعات اصلی</h3>
 
-      <div class="form-group">
-        <label for="name">Asset Name *</label>
-        <input id="name" v-model="form.name" type="text" :disabled="!isEditMode" required />
-      </div>
-
-      <div class="form-group">
-        <label for="description">Description</label>
-        <textarea id="description" v-model="form.description" rows="3" :disabled="!isEditMode" />
-      </div>
-
-      <div class="form-row">
         <div class="form-group">
-          <label for="category">Category *</label>
-          <select id="category" v-model="form.category" :disabled="!isEditMode" required>
-            <option value="">Select Category</option>
-            <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="department">Original Department *</label>
+          <label for="asset_code" class="form-label">
+            <span class="label-icon">🏷️</span>
+            کد دارایی
+          </label>
           <input
-            id="department"
-            :value="asset.department_name"
+            id="asset_code"
+            :value="asset.asset_code || asset.code"
             type="text"
             disabled
-            class="readonly-field"
+            class="form-input readonly-field"
           />
-          <small class="field-help">This is the department that originally owned this asset</small>
+        </div>
+
+        <div class="form-group">
+          <label for="name" class="form-label">
+            <span class="label-icon">📦</span>
+            نام دارایی *
+          </label>
+          <input
+            id="name"
+            v-model="form.name"
+            type="text"
+            :disabled="!isEditMode"
+            required
+            class="form-input"
+            placeholder="نام دارایی را وارد کنید"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">
+            <span class="label-icon">📝</span>
+            توضیحات
+          </label>
+          <textarea
+            id="description"
+            v-model="form.description"
+            rows="3"
+            :disabled="!isEditMode"
+            class="form-input"
+            placeholder="توضیحات مربوط به دارایی"
+          />
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="current_department">Current Department *</label>
-          <input
-            id="current_department"
-            :value="asset.current_department_name || 'N/A'"
-            type="text"
-            disabled
-            class="readonly-field"
-          />
-          <small class="field-help">This is where the asset is currently located</small>
+      <!-- اطلاعات دسته‌بندی -->
+      <div class="form-section">
+        <h3 class="section-title">دسته‌بندی و موقعیت</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="category" class="form-label">
+              <span class="label-icon">📂</span>
+              دسته‌بندی *
+            </label>
+            <select
+              id="category"
+              v-model="form.category"
+              :disabled="!isEditMode"
+              required
+              class="form-input"
+            >
+              <option value="">انتخاب دسته‌بندی</option>
+              <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="department" class="form-label">
+              <span class="label-icon">🏢</span>
+              بخش اصلی
+            </label>
+            <input
+              id="department"
+              :value="asset.department_name"
+              type="text"
+              disabled
+              class="form-input readonly-field"
+            />
+            <small class="field-help">بخش اولیه مالک این دارایی</small>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="status">Status</label>
-          <select id="status" v-model="form.status" :disabled="!isEditMode">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="under_maintenance">Under Maintenance</option>
-            <option value="disposed">Disposed</option>
-          </select>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="current_department" class="form-label">
+              <span class="label-icon">📍</span>
+              بخش فعلی
+            </label>
+            <input
+              id="current_department"
+              :value="asset.current_department_name || 'ندارد'"
+              type="text"
+              disabled
+              class="form-input readonly-field"
+            />
+            <small class="field-help">محل فعلی قرارگیری دارایی</small>
+          </div>
+
+          <div class="form-group">
+            <label for="status" class="form-label">
+              <span class="label-icon">🔄</span>
+              وضعیت
+            </label>
+            <select id="status" v-model="form.status" :disabled="!isEditMode" class="form-input">
+              <option value="active">فعال</option>
+              <option value="inactive">غیرفعال</option>
+              <option value="under_maintenance">در حال تعمیر</option>
+              <option value="disposed">از رده خارج</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <!-- Purchase Date (Jalali Only Display) -->
-      <div class="form-row">
-        <div class="form-group">
-          <label for="purchase_date">Purchase Date (Persian)</label>
-          <input
-            id="purchase_date"
-            :value="jalaliPurchaseDate"
-            type="text"
-            disabled
-            class="readonly-field"
-          />
+      <!-- اطلاعات مالی -->
+      <div class="form-section">
+        <h3 class="section-title">اطلاعات مالی</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="purchase_date" class="form-label">
+              <span class="label-icon">📅</span>
+              تاریخ خرید (شمسی)
+            </label>
+            <input
+              id="purchase_date"
+              :value="jalaliPurchaseDate"
+              type="text"
+              disabled
+              class="form-input readonly-field"
+            />
+            <small class="field-help">تاریخ بر اساس تقویم شمسی</small>
+          </div>
+
+          <div class="form-group">
+            <label for="purchase_price" class="form-label">
+              <span class="label-icon">💰</span>
+              قیمت خرید (تومان) *
+            </label>
+            <input
+              id="purchase_price"
+              v-model="form.purchase_price"
+              type="number"
+              step="0.01"
+              :disabled="!isEditMode"
+              required
+              class="form-input"
+              placeholder="مثال: 1000000"
+            />
+          </div>
         </div>
+
         <div class="form-group">
-          <label for="purchase_price">Purchase Price *</label>
+          <label for="current_value" class="form-label">
+            <span class="label-icon">💎</span>
+            ارزش فعلی (تومان)
+          </label>
           <input
-            id="purchase_price"
-            v-model="form.purchase_price"
+            id="current_value"
+            v-model="form.current_value"
             type="number"
             step="0.01"
             :disabled="!isEditMode"
-            required
+            class="form-input"
+            placeholder="مثال: 800000"
           />
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="current_value">Current Value</label>
-        <input
-          id="current_value"
-          v-model="form.current_value"
-          type="number"
-          step="0.01"
-          :disabled="!isEditMode"
-        />
+      <!-- اطلاعات تکنیکی -->
+      <div class="form-section">
+        <h3 class="section-title">اطلاعات تکنیکی</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="serial_number" class="form-label">
+              <span class="label-icon">🔢</span>
+              شماره سریال
+            </label>
+            <input
+              id="serial_number"
+              v-model="form.serial_number"
+              type="text"
+              :disabled="!isEditMode"
+              class="form-input"
+              placeholder="شماره سریال دارایی"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="brand" class="form-label">
+              <span class="label-icon">🏭</span>
+              برند
+            </label>
+            <input
+              id="brand"
+              v-model="form.brand"
+              type="text"
+              :disabled="!isEditMode"
+              class="form-input"
+              placeholder="نام برند"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="model" class="form-label">
+            <span class="label-icon">🏷️</span>
+            مدل
+          </label>
+          <input
+            id="model"
+            v-model="form.model"
+            type="text"
+            :disabled="!isEditMode"
+            class="form-input"
+            placeholder="مدل دارایی"
+          />
+        </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="serial_number">Serial Number</label>
-          <input id="serial_number" v-model="form.serial_number" type="text" :disabled="!isEditMode" />
-        </div>
-        <div class="form-group">
-          <label for="brand">Brand</label>
-          <input id="brand" v-model="form.brand" type="text" :disabled="!isEditMode" />
+      <!-- اطلاعات ثبت -->
+      <div class="form-section readonly-info">
+        <h3 class="section-title">اطلاعات ثبت</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">
+              <span class="label-icon">👤</span>
+              ثبت شده توسط
+            </label>
+            <input
+              :value="asset.created_by_name"
+              type="text"
+              disabled
+              class="form-input readonly-field"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <span class="label-icon">🕒</span>
+              تاریخ ثبت (شمسی)
+            </label>
+            <input
+              :value="jalaliCreatedAt"
+              type="text"
+              disabled
+              class="form-input readonly-field"
+            />
+          </div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="model">Model</label>
-        <input id="model" v-model="form.model" type="text" :disabled="!isEditMode" />
-      </div>
-
-      <div class="form-row readonly-info">
-        <div class="form-group">
-          <label>Created By</label>
-          <input :value="asset.created_by_name" type="text" disabled class="readonly-field" />
-        </div>
-        <div class="form-group">
-          <label>Created At (Persian)</label>
-          <input :value="jalaliCreatedAt" type="text" disabled class="readonly-field" />
-        </div>
-      </div>
-
+      <!-- دکمه‌های عملیات -->
       <div v-if="isEditMode" class="form-actions">
-        <button type="button" @click="cancelEdit" class="cancel-btn">Cancel</button>
+        <button type="button" @click="cancelEdit" class="action-btn cancel-btn">
+          <span class="btn-icon">✕</span>
+          انصراف
+        </button>
         <button
           type="button"
           @click="deleteAsset"
-          class="delete-btn"
+          class="action-btn delete-btn"
           v-if="authStore.user?.role === 'admin'"
         >
-          Delete Asset
+          <span class="btn-icon">🗑️</span>
+          حذف دارایی
         </button>
-        <button type="submit" :disabled="saving" class="submit-btn">
-          {{ saving ? 'Saving...' : 'Save Changes' }}
+        <button type="submit" :disabled="saving" class="action-btn submit-btn">
+          <span class="btn-icon">{{ saving ? '⏳' : '💾' }}</span>
+          {{ saving ? 'در حال ذخیره...' : 'ذخیره تغییرات' }}
         </button>
       </div>
     </form>
   </div>
 </template>
 
-
 <style scoped>
 .edit-asset {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 24px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  font-family: sans-serif;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 0;
+  font-family: 'Vazir', 'Tahoma', sans-serif;
+  direction: rtl;
 }
 
+/* Header Styles */
 .form-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 32px;
+  border-radius: 16px 16px 0 0;
+  margin-bottom: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
 }
 
-.form-header h1 {
+.header-content h1.page-title {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.page-subtitle {
   margin: 0;
-  font-size: 24px;
-  color: #1f2937;
+  font-size: 16px;
+  opacity: 0.9;
+  font-weight: 400;
 }
 
 .header-actions {
   display: flex;
-  gap: 1rem;
+  gap: 12px;
   align-items: center;
 }
 
 .back-btn {
-  color: #007bff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
   text-decoration: none;
   font-weight: 500;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
 }
 
 .back-btn:hover {
-  text-decoration: underline;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  text-decoration: none;
 }
 
 .btn {
-  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 500;
   text-decoration: none;
-  display: inline-block;
+  transition: all 0.3s ease;
+  font-size: 14px;
 }
 
 .btn-primary {
-  background: #007bff;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   color: white;
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
 }
 
 .btn-primary:hover {
-  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
 }
 
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: #6b7280;
+.btn-icon {
+  font-size: 16px;
 }
 
-.asset-form {
+/* Loading Styles */
+.loading-container {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px;
+  background: white;
+  border-radius: 0 0 16px 16px;
+  color: #64748b;
+  font-size: 16px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Form Styles */
+.asset-form {
+  background: white;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.form-section {
+  padding: 32px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.form-section:last-child {
+  border-bottom: none;
+}
+
+.section-title {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-title::before {
+  content: '';
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px;
 }
 
 .form-row {
-  display: flex;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
 }
 
-.form-row .form-group {
-  flex: 1;
+.form-row:last-child {
+  margin-bottom: 0;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
-.form-group label {
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 600;
   color: #374151;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
   font-size: 14px;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.label-icon {
+  font-size: 16px;
+}
+
+.form-input {
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: white;
+  text-align: right;
+  font-family: inherit;
+}
+
+.form-input:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+  font-style: italic;
 }
 
 /* Read-only field styles */
-.readonly-field,
-.form-group input:disabled,
-.form-group select:disabled,
-.form-group textarea:disabled {
-  background-color: #f8fafc !important;
-  color: #6b7280 !important;
+.readonly-field {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  color: #64748b !important;
   cursor: default;
-  border-color: #e5e7eb !important;
+  border-color: #e2e8f0 !important;
+  font-weight: 500;
 }
 
 .readonly-info {
-  border-top: 1px solid #e5e7eb;
-  padding-top: 20px;
-  margin-top: 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  margin: 0;
 }
 
 .field-help {
   font-size: 12px;
-  color: #6b7280;
+  color: #64748b;
   margin-top: 4px;
+  font-style: italic;
 }
 
+/* Form Actions */
 .form-actions {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   justify-content: flex-end;
-  padding-top: 20px;
+  padding: 32px;
+  background: #f8fafc;
   border-top: 1px solid #e5e7eb;
 }
 
-.cancel-btn {
-  padding: 10px 20px;
-  background: #6b7280;
-  color: white;
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.cancel-btn {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
 }
 
 .cancel-btn:hover {
-  background: #4b5563;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
 }
 
 .delete-btn {
-  padding: 10px 20px;
-  background: #dc2626;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .delete-btn:hover {
-  background: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
 }
 
 .submit-btn {
-  padding: 10px 20px;
-  background: #007bff;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
 .submit-btn:disabled {
-  background: #9ca3af;
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
+/* Number inputs direction */
+.form-input[type="number"] {
+  text-align: left;
+  direction: ltr;
+}
+
+/* Textarea resize */
+.form-input[type="textarea"] {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .form-row {
+  .edit-asset {
+    margin: 10px;
+  }
+
+  .form-header {
+    padding: 24px;
     flex-direction: column;
     gap: 16px;
+    text-align: center;
   }
-  
+
   .header-actions {
-    flex-direction: column;
-    gap: 8px;
+    width: 100%;
+    justify-content: center;
   }
-  
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .form-section {
+    padding: 24px 20px;
+  }
+
   .form-actions {
     flex-direction: column;
+    padding: 24px 20px;
+  }
+
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-header {
+    padding: 20px;
+  }
+
+  .header-content h1.page-title {
+    font-size: 24px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+  }
+
+  .section-title {
+    font-size: 18px;
   }
 }
 </style>
