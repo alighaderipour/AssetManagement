@@ -16,8 +16,7 @@
           <li><RouterLink to="/" exact-active-class="active">صفحه اصلی</RouterLink></li>
           <li><RouterLink to="/assets" exact-active-class="active">کالاها</RouterLink></li>
           <li><RouterLink to="/department-assets" exact-active-class="active">بخش ها و کالاها</RouterLink></li>
-
-          <li><RouterLink to="/categories" exact-active-class="active">دسته بندی</RouterLink></li>
+          <li><RouterLink to="/transfers" exact-active-class="active">انتقالات</RouterLink></li>
           <li><RouterLink to="/departments" exact-active-class="active">بخش ها</RouterLink></li>
           <li><RouterLink to="/about" exact-active-class="active">درباره</RouterLink></li>
         </ul>
