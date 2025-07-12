@@ -39,16 +39,17 @@ class Command(BaseCommand):
 
         # ایجاد بخش‌های نمونه
         departments = [
-            {'name': 'فناوری اطلاعات', 'code': 'IT'},
-            {'name': 'نیرو انسانی', 'code': 'HR'},
-            {'name': 'مالی', 'code': 'FIN'},
-            {'name': ' امداد و عملیات', 'code': 'OPS'},
+            {'name': 'فناوری اطلاعات', 'code': 'IT', 'type':'hospital'},
+            {'name': 'نیرو انسانی', 'code': 'HR', 'type':'hospital'},
+            {'name': 'مالی', 'code': 'FIN', 'type':'hospital'},
+            {'name': ' امداد و عملیات', 'code': 'OPS', 'type':'hospital'},
+            {'name': 'ماشین های اداری پردیس', 'code': 'PAD', 'type':'maintenance'},
         ]
         
         for dept_data in departments:
             department, created = Department.objects.get_or_create(
                 code=dept_data['code'],
-                defaults={'name': dept_data['name']}
+                defaults={'name': dept_data['name'],  'type': dept_data['type'],}
             )
             if created:
                 self.stdout.write(f'Department {dept_data["name"]} created')
