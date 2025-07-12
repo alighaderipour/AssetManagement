@@ -75,9 +75,17 @@ async function fetchBrands() {
     const res = await fetch(`${API_URL}/brands/`, {
       headers: getAuthHeaders()
     })
-    if (res.status === 401) throw new Error('ابتدا وارد حساب شوید.')
-    if (!res.ok) throw new Error('خطا در دریافت برندها')
-    brands.value = await res.json()
+    const contentType = res.headers.get("content-type");
+    const rawText = await res.text();
+    console.log("BRANDS RAW:", rawText);
+
+    if (!res.ok) {
+      throw new Error(`خطا (${res.status}): ${rawText}`);
+    }
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error('پاسخ سرور JSON نیست!');
+    }
+    brands.value = JSON.parse(rawText).sort((a, b) => a.name.localeCompare(b.name, 'fa'))
   } catch (err) {
     error.value = err.message
     brands.value = []
@@ -85,6 +93,8 @@ async function fetchBrands() {
     loading.value = false
   }
 }
+
+
 
 async function addBrand() {
   error.value = ''

@@ -89,9 +89,14 @@
           <input id="asset_code" v-model="form.asset_code" type="text" required autocomplete="off" />
         </div>
         <div class="form-group">
-          <label for="brand">برند</label>
-          <input id="brand" v-model="form.brand" type="text" />
-        </div>
+  <label for="brand">برند</label>
+  <select id="brand" v-model="form.brand">
+    <option value="">انتخاب برند</option>
+    <option v-for="b in brands" :key="b.id" :value="b.id">{{ b.name }}</option>
+  </select>
+</div>
+
+
       </div>
 
       <div class="form-group">
@@ -140,6 +145,7 @@ const form = ref({
   brand: '',
   model: ''
 })
+const brands = ref([])
 
 const loading = ref(false)
 const departments = computed(() => assetsStore.departments)
@@ -163,7 +169,9 @@ const submitAsset = async () => {
     if (payload.current_value) {
       payload.current_value = parseFloat(payload.current_value)
     }
-
+    if (payload.brand) {
+  payload.brand = brands.value.find(b => b.id == payload.brand)?.name || ''
+}
     await assetsStore.addAsset(payload)
     alert('دارایی با موفقیت افزوده شد!')
     router.push('/assets')
@@ -178,7 +186,39 @@ const submitAsset = async () => {
 onMounted(async () => {
   await assetsStore.fetchDepartments()
   await assetsStore.fetchCategories()
+  await fetchBrands()
 })
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api"
+function getAuthHeaders() {
+  const token = localStorage.getItem('access_token')
+  return token
+    ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+    : { 'Content-Type': 'application/json' }
+}
+
+async function fetchBrands() {
+  try {
+    const res = await fetch(`${API_URL}/brands/`, {
+      headers: getAuthHeaders()
+    })
+    const contentType = res.headers.get("content-type");
+    const rawText = await res.text();
+    console.log("RAW BRANDS ADD-ASSET:", rawText);
+
+    if (!res.ok) throw new Error('برندها بارگذاری نشد!')
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error('پاسخ سرور JSON نیست!');
+    }
+    brands.value = JSON.parse(rawText).sort((a, b) => a.name.localeCompare(b.name, 'fa'))
+  } catch (err) {
+    brands.value = []
+    alert('مشکل در بارگذاری برندها!')
+    console.error('brands fetch error', err)
+  }
+}
+
+
 </script>
 
 <style scoped>

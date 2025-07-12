@@ -1,7 +1,7 @@
 # backend/assetmangement/management/commands/create_initial_data.py
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from assetmanagement.models import Department, Category
+from assetmanagement.models import Department, Category, Brand
 
 User = get_user_model()
 
@@ -40,9 +40,9 @@ class Command(BaseCommand):
         # ایجاد بخش‌های نمونه
         departments = [
             {'name': 'فناوری اطلاعات', 'code': 'IT'},
-            {'name': 'منابع انسانی', 'code': 'HR'},
+            {'name': 'نیرو انسانی', 'code': 'HR'},
             {'name': 'مالی', 'code': 'FIN'},
-            {'name': 'عملیات', 'code': 'OPS'},
+            {'name': ' امداد و عملیات', 'code': 'OPS'},
         ]
         
         for dept_data in departments:
@@ -57,9 +57,10 @@ class Command(BaseCommand):
 
         # ایجاد دسته‌بندی‌های نمونه با code
         categories = [
-            {'name': 'کامپیوتر و لپ‌تاپ', 'code': 'COMP'},
-            {'name': 'پرینتر و اسکنر', 'code': 'PRINT'},
-            {'name': 'مبلمان اداری', 'code': 'FURN'},
+            {'name': 'کامپیوت', 'code': 'COMP'},
+            {'name': 'لپ‌تاپ', 'code': 'LAPT'},
+            {'name': 'پرینتر', 'code': 'PRINT'},
+            {'name': 'اسکنر', 'code': 'SCN'},
             {'name': 'تجهیزات شبکه', 'code': 'NET'},
             {'name': 'لوازم جانبی', 'code': 'ACC'},
         ]
@@ -73,5 +74,19 @@ class Command(BaseCommand):
                 self.stdout.write(f'Category {cat_data["name"]} created')
             else:
                 self.stdout.write(f'Category {cat_data["name"]} already exists')
+
+        brand_data = {
+            'name': 'HP',
+            'code': 'BR0001',
+            'description': 'اچ پی'
+        }
+        brand, created = Brand.objects.get_or_create(
+            code=brand_data['code'],
+            defaults={'name': brand_data['name'], 'description': brand_data['description']}
+        )
+        if created:
+            self.stdout.write(self.style.SUCCESS(f'Brand {brand_data["name"]} created!'))
+        else:
+            self.stdout.write(self.style.WARNING(f'Brand {brand_data["name"]} already exists.'))
 
         self.stdout.write(self.style.SUCCESS('Initial data created successfully!'))
