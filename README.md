@@ -3,6 +3,8 @@ simple django vue + Django project
 
 ## Installation For Nasser
 # 1- Inside Mysql 
+mysql user: root  
+mysql password: pass khdoet ro bezar :D  
 create database assetmanagement  
 use assetmanagement
 
@@ -30,7 +32,7 @@ npm run dev
 
 
 # 3-Login Username & Password
-admin
+admin  
 admin123
 
 ------------------------------------------------
