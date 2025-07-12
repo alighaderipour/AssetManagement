@@ -67,7 +67,11 @@ const loadAsset = async () => {
       current_department: assetData.current_department || '',
       status: assetData.status || 'active',
       purchase_date: pd,  // ❌ This is wrong
-      // ... rest of fields
+      purchase_price: assetData.purchase_price || '',
+  current_value: assetData.current_value || '',
+  serial_number: assetData.serial_number || '',
+  brand: assetData.brand || '',
+  model: assetData.model || ''
     };
   } catch (error) {
     // ... error handling

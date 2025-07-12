@@ -53,6 +53,7 @@
             format="YYYY/MM/DD"
             display-format="jYYYY/jMM/jDD"
             auto-submit
+            :disabled="!isEditMode"
             required
           />
         </div>
@@ -122,11 +123,6 @@ import { useAssetsStore } from '@/stores/assets'
 import DatePicker from 'vue3-persian-datetime-picker'
 import jalaali from 'jalaali-js'
 
-function jalaliToGregorian(jalaliDateStr) {
-  const [jy, jm, jd] = jalaliDateStr.split('/').map(Number)
-  const g = jalaali.toGregorian(jy, jm, jd)
-  return `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}`
-}
 
 const router = useRouter()
 const assetsStore = useAssetsStore()
@@ -159,9 +155,8 @@ const submitAsset = async () => {
       if (v !== '') payload[k] = v
     }
 
-    if (payload.purchase_date) {
-      payload.purchase_date = jalaliToGregorian(payload.purchase_date)
-    }
+    // ✅ Let DatePicker handle date conversion automatically
+    // Remove the manual jalaliToGregorian conversion
 
     if (payload.purchase_price) {
       payload.purchase_price = parseFloat(payload.purchase_price)
@@ -170,8 +165,9 @@ const submitAsset = async () => {
       payload.current_value = parseFloat(payload.current_value)
     }
     if (payload.brand) {
-  payload.brand = brands.value.find(b => b.id == payload.brand)?.name || ''
-}
+      payload.brand = brands.value.find(b => b.id == payload.brand)?.name || ''
+    }
+
     await assetsStore.addAsset(payload)
     alert('دارایی با موفقیت افزوده شد!')
     router.push('/assets')
@@ -182,6 +178,7 @@ const submitAsset = async () => {
     loading.value = false
   }
 }
+
 
 onMounted(async () => {
   await assetsStore.fetchDepartments()
