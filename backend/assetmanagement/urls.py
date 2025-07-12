@@ -3,7 +3,7 @@
 from django.urls import path
 from . import views
 from .views import DepartmentListCreateView, DepartmentDetailView, CategoryListCreateView, CategoryDetailView
-
+from rest_framework.routers import DefaultRouter
 urlpatterns = [
     # Auth
     path('auth/login/', views.login_view, name='login'),
@@ -30,11 +30,16 @@ urlpatterns = [
 
     # Admin
     path('admin/users/', views.UserListCreateView.as_view(), name='user-list'),
-    path('departments/', DepartmentListCreateView.as_view(), name='department-list'),
+
     path('departments/<int:pk>/', DepartmentDetailView.as_view(), name='department-detail'),
     path('categories/', CategoryListCreateView.as_view(), name='category-list'),
     path('categories/<int:pk>/', CategoryDetailView.as_view(), name='category-detail'),
 
     path('department-assets/', views.department_assets, name='department-assets'),
+
+    path('brands/', views.brand_list, name='brand-list'),
+    path('brands/<int:pk>/', views.brand_detail, name='brand-detail'),
+
+
 
 ]

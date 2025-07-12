@@ -1,7 +1,7 @@
 # backend/assetmanagement/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from .models import User, Department, Category, Asset, AssetTransfer
+from .models import User, Department, Category, Asset, AssetTransfer, Brand
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
@@ -63,3 +63,10 @@ class AssetTransferAdmin(admin.ModelAdmin):
     search_fields = (
         "asset__name", "asset__code",
     )
+
+
+
+    @admin.register(Brand)
+    class BrandAdmin(admin.ModelAdmin):
+        list_display = ('name', 'code')
+        search_fields = ('name', 'code')

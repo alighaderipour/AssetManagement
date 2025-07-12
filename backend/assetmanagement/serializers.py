@@ -2,7 +2,7 @@ from django.db.models import Sum
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import (
-    User, Department, Category, Asset, AssetTransfer
+    User, Department, Category, Asset, AssetTransfer, Brand
 )
 
 class UserSerializer(serializers.ModelSerializer):
@@ -145,3 +145,9 @@ class AssetTransferCreateSerializer(serializers.ModelSerializer):
         asse.current_department = validated_data['to_department']
         asse.save()
         return transfer
+
+class BrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Brand
+        fields = '__all__'
+        read_only_fields = ['code']

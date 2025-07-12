@@ -152,3 +152,19 @@ class AssetTransfer(models.Model):
 
     def __str__(self):
         return f"{self.asset.name} from {self.from_department.name} to {self.to_department.name}"
+
+
+class Brand(models.Model):
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=12, unique=True, editable=False)  # اتومات جنریت میشه
+    description = models.TextField(blank=True)
+    # می‌تونی هر فیلد دیگه‌ای نیاز داری اضافه کنی
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            # تولید کد منحصر به فرد به طور اتومات (مثلا نام کوتاه+آی‌دی یا ...)
+            self.code = 'BR' + str(Brand.objects.count() + 1).zfill(4)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
