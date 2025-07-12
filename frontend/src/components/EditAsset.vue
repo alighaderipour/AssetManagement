@@ -51,39 +51,31 @@ const loadAsset = async () => {
     const id = route.params.id;
     asset.value = await assetsStore.getAsset(id);
     const assetData = asset.value;
+
+    // ❌ REMOVE THIS MANUAL CONVERSION:
     let pd = '';
     if (assetData.purchase_date) {
       const d = new Date(assetData.purchase_date);
       const j = jalaali.toJalaali(d);
       pd = `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`;
     }
+
     form.value = {
       name: assetData.name || '',
       description: assetData.description || '',
       category: assetData.category || '',
       current_department: assetData.current_department || '',
       status: assetData.status || 'active',
-      purchase_date: pd,
-      purchase_price: assetData.purchase_price || '',
-      current_value: assetData.current_value || '',
-      serial_number: assetData.serial_number || '',
-      brand: assetData.brand || '',
-      model: assetData.model || ''
+      purchase_date: pd,  // ❌ This is wrong
+      // ... rest of fields
     };
   } catch (error) {
-    console.error('خطا در بارگذاری دارایی:', error);
-
-    // تشخیص ارور 404 (دارایی وجود ندارد)
-    if (error.message.includes('404')) {
-      alert('دارایی مورد نظر پیدا نشد یا حذف شده است.');
-      router.push('/assets');
-    } else {
-      alert('خطا در بارگذاری جزئیات دارایی. لطفاً بعداً دوباره تلاش کنید.');
-    }
+    // ... error handling
   } finally {
     loading.value = false;
   }
 };
+
 
 
 const submitAsset = async () => {
@@ -310,14 +302,14 @@ onMounted(async () => {
       تاریخ خرید (شمسی)
     </label>
     <DatePicker
-      v-model="form.purchase_date"
-      format="jYYYY/jMM/jDD"
-      display-format="jYYYY/jMM/jDD"
-      :disabled="!isEditMode"
-      id="purchase_date"
-      class="form-input"
-      placeholder="تاریخ را انتخاب کنید"
-    />
+  v-model="form.purchase_date"
+  format="YYYY/MM/DD"
+  display-format="jYYYY/jMM/jDD"
+  auto-submit
+  :disabled="!isEditMode"
+  required
+/>
+
     <small class="field-help">تاریخ بر اساس تقویم شمسی نمایش داده می‌شود</small>
   </div>
 
