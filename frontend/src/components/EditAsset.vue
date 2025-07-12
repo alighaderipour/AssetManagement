@@ -46,16 +46,16 @@ const toJalali = (dateString) => {
 const jalaliCreatedAt = computed(() => toJalali(asset.value?.created_at))
 
 const loadAsset = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const id = route.params.id
-    asset.value = await assetsStore.getAsset(id)
-    const assetData = asset.value
-    let pd = ''
+    const id = route.params.id;
+    asset.value = await assetsStore.getAsset(id);
+    const assetData = asset.value;
+    let pd = '';
     if (assetData.purchase_date) {
-      const d = new Date(assetData.purchase_date)
-      const j = jalaali.toJalaali(d)
-      pd = `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`
+      const d = new Date(assetData.purchase_date);
+      const j = jalaali.toJalaali(d);
+      pd = `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`;
     }
     form.value = {
       name: assetData.name || '',
@@ -69,14 +69,22 @@ const loadAsset = async () => {
       serial_number: assetData.serial_number || '',
       brand: assetData.brand || '',
       model: assetData.model || ''
-    }
+    };
   } catch (error) {
-    console.error('خطا در بارگذاری دارایی:', error)
-    alert('خطا در بارگذاری جزئیات دارایی')
+    console.error('خطا در بارگذاری دارایی:', error);
+
+    // تشخیص ارور 404 (دارایی وجود ندارد)
+    if (error.message.includes('404')) {
+      alert('دارایی مورد نظر پیدا نشد یا حذف شده است.');
+      router.push('/assets');
+    } else {
+      alert('خطا در بارگذاری جزئیات دارایی. لطفاً بعداً دوباره تلاش کنید.');
+    }
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
+
 
 const submitAsset = async () => {
   if (!isEditMode.value) return
@@ -124,8 +132,10 @@ const deleteAsset = async () => {
     alert('دارایی با موفقیت حذف شد!')
     router.push('/assets')
   } catch (error) {
-    console.error('خطا در حذف دارایی:', error)
-    alert('خطا در حذف دارایی: ' + (error.response?.data?.detail || error.message))
+    let msg = error.response?.status === 404
+    ? "این دارایی قبلاً حذف شده است."
+    : error.response?.data?.detail || error.message;
+  alert('خطا در حذف دارایی: ' + msg)
   }
 }
 
@@ -314,13 +324,13 @@ onMounted(async () => {
           <div class="form-group">
             <label for="purchase_price" class="form-label">
               <span class="label-icon">💰</span>
-              قیمت خرید (تومان) *
+              قیمت خرید (ریال) *
             </label>
             <input
               id="purchase_price"
               v-model="form.purchase_price"
               type="number"
-              step="0.01"
+              step="1000000"
               :disabled="!isEditMode"
               required
               class="form-input"

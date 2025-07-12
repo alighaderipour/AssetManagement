@@ -30,7 +30,10 @@ export async function apiRequest(url, method = "GET", data = null) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
-  return await response.json();
+  if (response.status === 204) return; // اگر کد 204 بود (هیچ محتوایی)
+  const text = await response.text();
+  if (!text) return; // اگر body خالیه، return کن
+  return JSON.parse(text);
 }
 
 // For JSON-based asset transfer

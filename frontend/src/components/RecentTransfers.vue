@@ -59,7 +59,7 @@
 
           <div v-if="transfer.price" class="transfer-price">
             <span class="price-icon">💰</span>
-            <span>{{ Number(transfer.price).toLocaleString() }} تومان</span>
+            <span>{{ Number(transfer.price).toLocaleString() }} ریال</span>
           </div>
         </div>
 

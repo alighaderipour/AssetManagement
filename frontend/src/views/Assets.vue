@@ -79,7 +79,7 @@
               <span class="detail-label">جمع هزینه انتقال:</span>
               <span class="cost-value">
                 {{ asset.total_transfer_cost ? Number(asset.total_transfer_cost).toLocaleString() : '۰' }}
-                <span class="currency">تومان</span>
+                <span class="currency">ریال</span>
               </span>
             </div>
           </div>
@@ -129,7 +129,7 @@
             id="price"
             v-model="transferForm.price"
             min="0"
-            step="100000"
+            step="1000000"
             placeholder="قیمت انتقال"
           />
           <div v-if="fieldErrors.price" class="field-error">{{ fieldErrors.price }}</div>
@@ -588,8 +588,16 @@ onMounted(async () => {
   align-items: flex-start;
   margin-bottom: 1rem;
   gap: 0.75rem;
+  flex-direction: row-reverse;
 }
 
+.asset-header .asset-name {
+  flex: 1;
+  text-align: right;
+}
+.asset-header .asset-status {
+  flex-shrink: 0; /* تا این یکی کوچک نشه */
+}
 .asset-name {
   margin: 0;
   color: #1e293b;
