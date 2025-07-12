@@ -4,7 +4,7 @@
       <!-- ۱. اکشن‌ها سمت راست -->
       <div class="dashboard-actions">
         <router-link to="/assets/add" class="action-btn">افزودن کالا</router-link>
-        <router-link to="/transfers" class="action-btn">مشاهده جابجایی‌ها</router-link>
+        <router-link to="/transfers" class="action-btn">مشاهده انتقالات</router-link>
         <router-link v-if="authStore.isAdmin" to="/admin" class="action-btn admin-btn">پنل ادمین</router-link>
       </div>
 
