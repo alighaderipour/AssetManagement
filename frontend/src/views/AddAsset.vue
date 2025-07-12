@@ -204,7 +204,7 @@ async function fetchBrands() {
     })
     const contentType = res.headers.get("content-type");
     const rawText = await res.text();
-    console.log("RAW BRANDS ADD-ASSET:", rawText);
+
 
     if (!res.ok) throw new Error('برندها بارگذاری نشد!')
     if (!contentType || !contentType.includes("application/json")) {

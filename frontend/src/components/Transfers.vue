@@ -154,7 +154,7 @@
       <div class="empty-icon">📦</div>
       <h3>هیچ انتقالی یافت نشد</h3>
       <p>هنوز هیچ انتقال داراییی ثبت نشده است.</p>
-      <router-link to="/transfers/add" class="btn btn-primary">
+      <router-link to="/assets" class="btn btn-primary">
         ایجاد اولین انتقال
       </router-link>
     </div>
