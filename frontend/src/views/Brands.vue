@@ -77,7 +77,7 @@ async function fetchBrands() {
     })
     const contentType = res.headers.get("content-type");
     const rawText = await res.text();
-    console.log("BRANDS RAW:", rawText);
+
 
     if (!res.ok) {
       throw new Error(`خطا (${res.status}): ${rawText}`);
