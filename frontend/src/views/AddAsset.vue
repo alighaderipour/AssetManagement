@@ -53,7 +53,7 @@
             format="YYYY/MM/DD"
             display-format="jYYYY/jMM/jDD"
             auto-submit
-            
+
             required
           />
         </div>
@@ -171,7 +171,7 @@ const submitAsset = async () => {
   // اگر تاریخ به صورت "2025/07/13" میاد، به "2025-07-13" تبدیل کن:
   payload.purchase_date = payload.purchase_date.replace(/\//g, '-');
 }
-    console.log("🚩 PAYLOAD SENDING:", payload)
+    // console.log("🚩 PAYLOAD SENDING:", payload)
     await assetsStore.addAsset(payload)
     alert('دارایی با موفقیت افزوده شد!')
     router.push('/assets')
