@@ -53,12 +53,7 @@ const loadAsset = async () => {
     const assetData = asset.value;
 
     // ❌ REMOVE THIS MANUAL CONVERSION:
-    let pd = '';
-    if (assetData.purchase_date) {
-      const d = new Date(assetData.purchase_date);
-      const j = jalaali.toJalaali(d);
-      pd = `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`;
-    }
+    let pd = assetData.purchase_date || ''
 
     form.value = {
       name: assetData.name || '',
@@ -66,7 +61,7 @@ const loadAsset = async () => {
       category: assetData.category || '',
       current_department: assetData.current_department || '',
       status: assetData.status || 'active',
-      purchase_date: pd,  // ❌ This is wrong
+      purchase_date: assetData.purchase_date || '',  // ❌ This is wrong
       purchase_price: assetData.purchase_price || '',
   current_value: assetData.current_value || '',
   serial_number: assetData.serial_number || '',
