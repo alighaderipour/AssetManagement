@@ -40,6 +40,11 @@
         <h3>دسته‌بندی‌ها</h3>
         <p class="stat-number">{{ stats.total_categories || 0 }}</p>
       </div>
+      <div class="stat-card clickable brand-card" @click="goToBrands">
+        <h3>تعداد برندها</h3>
+        <p class="stat-number">{{ stats.total_brands || 0 }}</p>
+      </div>
+
     </div>
 
     <RecentTransfers :max-items="5" />
@@ -112,6 +117,9 @@ const goToDepartmentAssets = (deptName) => {
   })
 }
 
+const goToBrands = () => {
+  router.push('/brands')
+}
 
 const fetchStats = async () => {
   try {
@@ -215,7 +223,7 @@ onMounted(() => {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
   direction: rtl;

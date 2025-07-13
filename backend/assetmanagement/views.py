@@ -229,7 +229,8 @@ def dashboard_stats(request):
             AssetTransfer.objects.order_by('-transfer_date')[:5],
             many=True
         ).data,
-        'assets_by_department': {}
+        'assets_by_department': {},
+        "total_brands": Brand.objects.count(),
     }
 
     for dept in Department.objects.all():
@@ -345,3 +346,4 @@ def brand_detail(request, pk):
     if request.method == 'DELETE':
         brand.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
