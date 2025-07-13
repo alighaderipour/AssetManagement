@@ -147,10 +147,11 @@
         </div>
 
         <div class="modal-actions">
-          <button type="button" @click="closeTransferModal">لغو</button>
+
           <button type="button" class="submit-btn" :disabled="transferring" @click="submitTransfer">
             {{ transferring ? 'در حال انتقال...' : 'ثبت انتقال' }}
           </button>
+          <button type="button" @click="closeTransferModal">لغو</button>
         </div>
       </div>
     </div>
@@ -458,6 +459,8 @@ onMounted(async () => {
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
+   direction: rtl;
+  text-align: right;
 }
 .form-group {
   margin-bottom: 1rem;
@@ -491,18 +494,23 @@ onMounted(async () => {
   border-radius: 4px;
   cursor: pointer;
 }
-.modal-actions button:first-child {
-  background: #e2e8f0;
-  color: #2d3748;
+modal-actions .submit-btn {
+  background: #23b682;
+  color: #fff;
 }
-.modal-actions button:last-child {
-  background: #667eea;
-  color: white;
+/* دکمه لغو: خاکستری روشن */
+.modal-actions button:not(.submit-btn) {
+  background: #ececec;
+  color: #868686;
 }
-.modal-actions button:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
+
+/* حالت disabled روی دکمه ثبت انتقال */
+.modal-actions .submit-btn:disabled {
+  background: #9fdac4;
+  color: #eee;
+  cursor: wait;
 }
+
 @media (max-width: 768px) {
   .assets {
     padding: 1rem;
