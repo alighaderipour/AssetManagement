@@ -18,6 +18,7 @@
           <li><RouterLink to="/department-assets" exact-active-class="active">بخش ها و کالاها</RouterLink></li>
           <li><RouterLink to="/transfers" exact-active-class="active">انتقالات</RouterLink></li>
           <li><RouterLink to="/departments" exact-active-class="active">بخش ها</RouterLink></li>
+          <li><RouterLink to="/categories" exact-active-class="active">دسته بندي ها</RouterLink></li>
           <li><RouterLink to="/brands" exact-active-class="active">برند ها</RouterLink></li>
           <li><RouterLink to="/about" exact-active-class="active">درباره</RouterLink></li>
         </ul>
