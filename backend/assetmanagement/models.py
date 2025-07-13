@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 import uuid
+import os
 #haha models
 
 class User(AbstractUser):
@@ -154,6 +155,8 @@ class AssetTransfer(models.Model):
         return f"{self.asset.name} from {self.from_department.name} to {self.to_department.name}"
 
 
+
+
 class Brand(models.Model):
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=12, unique=True, editable=False)  # اتومات جنریت میشه
@@ -168,3 +171,20 @@ class Brand(models.Model):
 
     def __str__(self):
         return self.name
+
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+@receiver(post_delete, sender=AssetTransfer)
+def delete_invoice_image_file(sender, instance, **kwargs):
+    if instance.image:
+        image_path = instance.image.path
+        if os.path.isfile(image_path):
+            try:
+                os.remove(image_path)
+                print(f"DELETED: {image_path}")
+            except Exception as e:
+                print(f"Error deleting {image_path}: {e}")
+        else:
+            print(f"File not found: {image_path}")
+    else:
+        print("No image to delete.")
