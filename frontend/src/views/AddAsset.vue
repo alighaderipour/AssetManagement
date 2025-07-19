@@ -104,6 +104,13 @@
         <label for="model">مدل</label>
         <input id="model" v-model="form.model" type="text" />
       </div>
+    <div class="form-group">
+  <label for="usecase">مورد استفاده</label>
+  <select id="usecase" v-model="form.usecase">
+
+    <option v-for="u in usecases" :key="u.id" :value="u.id">{{ u.name }}</option>
+  </select>
+</div>
 
       <!-- دکمه‌ها -->
       <div class="form-actions">
@@ -146,6 +153,20 @@ const brands = ref([])
 const loading = ref(false)
 const departments = computed(() => assetsStore.departments)
 const categories = computed(() => assetsStore.categories)
+const usecases = ref([])
+async function fetchUseCases() {
+  try {
+    const res = await fetch(`${API_URL}/usecases/`, {
+      headers: getAuthHeaders(),
+    })
+    if (!res.ok) throw new Error('موارد استفاده بارگذاری نشد!')
+    usecases.value = await res.json()
+  } catch (err) {
+    usecases.value = []
+    alert('مشکل در بارگذاری موارد استفاده!')
+    console.error('usecases fetch error', err)
+  }
+}
 
 const submitAsset = async () => {
   loading.value = true
@@ -188,6 +209,7 @@ onMounted(async () => {
   await assetsStore.fetchDepartments()
   await assetsStore.fetchCategories()
   await fetchBrands()
+   await fetchUseCases()
 })
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api"

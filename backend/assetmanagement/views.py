@@ -9,11 +9,11 @@ from django.contrib.auth import authenticate
 from django.db.models import Q
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from .models import User, Department, Category, Asset, AssetTransfer, Brand
+from .models import User, Department, Category, Asset, AssetTransfer, Brand, UseCase
 from .serializers import (
     UserSerializer, LoginSerializer, DepartmentSerializer,
     CategorySerializer, AssetSerializer, AssetTransferSerializer,
-    AssetTransferCreateSerializer, BrandSerializer
+    AssetTransferCreateSerializer, BrandSerializer, UseCaseSerializer
 )
 
 
@@ -347,3 +347,37 @@ def brand_detail(request, pk):
         brand.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+# views.py
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def usecase_list(request):
+    if request.method == 'GET':
+        usecases = UseCase.objects.all()
+        serializer = UseCaseSerializer(usecases, many=True)
+        return Response(serializer.data)
+    if request.method == 'POST':
+        serializer = UseCaseSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def usecase_detail(request, pk):
+    try:
+        usecase = UseCase.objects.get(pk=pk)
+    except UseCase.DoesNotExist:
+        return Response(status=404)
+    if request.method == 'GET':
+        serializer = UseCaseSerializer(usecase)
+        return Response(serializer.data)
+    if request.method == 'PUT':
+        serializer = UseCaseSerializer(usecase, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+    if request.method == 'DELETE':
+        usecase.delete()
+        return Response(status=204)

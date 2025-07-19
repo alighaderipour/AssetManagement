@@ -5,11 +5,16 @@ import { useAssetsStore } from '@/stores/assets'
 import { useAuthStore } from '@/stores/auth'
 import jalaali from 'jalaali-js'
 import DatePicker from 'vue3-persian-datetime-picker'
+import { useUsecaseStore } from "@/stores/usecase";
+
 
 const router = useRouter()
 const route = useRoute()
 const assetsStore = useAssetsStore()
 const authStore = useAuthStore()
+
+const usecaseStore = useUsecaseStore();
+const usecases = computed(() => usecaseStore.usecases);
 
 const asset = ref(null)
 const form = ref({
@@ -23,7 +28,8 @@ const form = ref({
   current_value: '',
   serial_number: '',
   brand: '',
-  model: ''
+  model: '',
+  usecase: ""
 })
 
 const loading = ref(false)
@@ -66,7 +72,8 @@ const loadAsset = async () => {
   current_value: assetData.current_value || '',
   serial_number: assetData.serial_number || '',
   brand: assetData.brand || '',
-  model: assetData.model || ''
+  model: assetData.model || '',
+      usecase: assetData.usecase || ''
     };
   } catch (error) {
     // ... error handling
@@ -134,7 +141,8 @@ onMounted(async () => {
   await Promise.all([
     assetsStore.fetchDepartments(),
     assetsStore.fetchCategories(),
-    loadAsset()
+    loadAsset(),
+    await usecaseStore.fetchUsecases()
   ])
 })
 </script>
@@ -395,6 +403,14 @@ onMounted(async () => {
             placeholder="مدل دارایی"
           />
         </div>
+        <div class="form-group">
+  <label for="usecase">مورد کاربرد</label>
+  <select id="usecase" v-model="form.usecase" :disabled="!isEditMode">
+    <option value="">انتخاب مورد کاربرد</option>
+    <option v-for="u in usecases" :key="u.id" :value="u.id">{{ u.name }}</option>
+  </select>
+</div>
+
       </div>
 
       <!-- اطلاعات ثبت -->

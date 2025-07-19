@@ -24,7 +24,18 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.username} - {self.get_role_display()}"
 
+class UseCase(models.Model):
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=12, unique=True, editable=False)
+    description = models.TextField(blank=True)
 
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = 'UC' + str(UseCase.objects.count() + 1).zfill(4)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
 class Department(models.Model):
     DEPARTMENT_TYPES = [
         ('hospital', 'Hospital Department'),
@@ -73,6 +84,7 @@ class Asset(models.Model):
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=50, unique=True, editable=False)
     description = models.TextField(blank=True)
+    usecase = models.ForeignKey(UseCase, on_delete=models.SET_NULL, null=True, blank=True, related_name='assets')
 
     category = models.ForeignKey(
         Category,
@@ -188,3 +200,7 @@ def delete_invoice_image_file(sender, instance, **kwargs):
             print(f"File not found: {image_path}")
     else:
         print("No image to delete.")
+
+
+
+

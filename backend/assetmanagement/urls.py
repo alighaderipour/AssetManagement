@@ -41,5 +41,6 @@ urlpatterns = [
     path('brands/<int:pk>/', views.brand_detail, name='brand-detail'),
 
 
-
+    path('usecases/', views.usecase_list, name='usecase-list'),
+    path('usecases/<int:pk>/', views.usecase_detail, name='usecase-detail'),
 ]

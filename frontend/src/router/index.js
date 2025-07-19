@@ -82,6 +82,11 @@ const routes = [
     component: EditAsset, // Using the same component for now
     meta: { requiresAuth: true },
   },
+    {
+  path: '/usecases',
+  name: 'UseCases',
+  component: () => import('@/views/UseCases.vue')
+},
   {
     path: "/transfers",
     name: "Transfers",

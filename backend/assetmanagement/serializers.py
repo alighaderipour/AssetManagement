@@ -2,7 +2,7 @@ from django.db.models import Sum
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import (
-    User, Department, Category, Asset, AssetTransfer, Brand
+    User, Department, Category, Asset, AssetTransfer, Brand,UseCase
 )
 
 class UserSerializer(serializers.ModelSerializer):
@@ -80,7 +80,7 @@ class AssetSerializer(serializers.ModelSerializer):
             'image', 'category_name', 'department_name',
             'current_department_name', 'created_by',
             'created_by_name', 'created_at', 'updated_at',
-            'total_transfer_cost', 'current_department_type',
+            'total_transfer_cost', 'current_department_type','usecase', 'usecase_id'
 
         ]
         read_only_fields = ['code', 'created_by', 'created_at', 'updated_at']
@@ -149,5 +149,11 @@ class AssetTransferCreateSerializer(serializers.ModelSerializer):
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
+        fields = '__all__'
+        read_only_fields = ['code']
+# serializers.py
+class UseCaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UseCase
         fields = '__all__'
         read_only_fields = ['code']
