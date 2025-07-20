@@ -15,7 +15,7 @@ python -m venv venv
 venv/Scripts/Activate  
 pip install -r requirements.txt
 
-django-admin startproject config .
+django-admin startproject config .  
 python manage.py startapp assetmanagement  
 python manage.py makemigrations  
 python manage.py migrate  
