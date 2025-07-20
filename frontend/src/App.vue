@@ -20,6 +20,7 @@
           <li><RouterLink to="/departments" exact-active-class="active">بخش ها</RouterLink></li>
           <li><RouterLink to="/categories" exact-active-class="active">دسته بندي ها</RouterLink></li>
           <li><RouterLink to="/brands" exact-active-class="active">برند ها</RouterLink></li>
+          <li><RouterLink to="/usecases" exact-active-class="active">مورد کاربرد</RouterLink></li>
           <li><RouterLink to="/about" exact-active-class="active">درباره</RouterLink></li>
         </ul>
       </div>

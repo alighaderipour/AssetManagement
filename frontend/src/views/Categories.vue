@@ -61,6 +61,7 @@ const errorMsg = ref('')
 const fetchCategories = async () => {
   try {
     const res = await apiRequest('/api/categories/')
+    // console.log('categories response:', res)
     categories.value = res.results || res
   } catch (err) {
     errorMsg.value = 'دریافت دسته‌بندی‌ها با خطا مواجه شد'
